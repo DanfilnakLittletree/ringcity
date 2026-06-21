@@ -7,74 +7,67 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm" type="module"></script>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { font-family:'Segoe UI',system-ui,sans-serif; min-height:100vh; background:#0f1217; color:#eef; }
-        .app-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; background:linear-gradient(135deg,#1a1a2e,#2a1a2a,#1a2a3a); }
-        .app-bg::after { content:''; position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; opacity:0.15; }
-        body.theme-swamp-witch .app-bg { background:linear-gradient(135deg,#1a0a2e,#2d1b4a,#0d0015); }
-        body.theme-swamp-witch .app-bg::after { background-image: radial-gradient(circle at 15% 20%, #c9a050 1px, transparent 1px), radial-gradient(circle at 55% 65%, #c9a050 1.5px, transparent 1.5px), radial-gradient(circle at 85% 30%, #c9a050 1px, transparent 1px); background-size: 90px 90px, 130px 130px, 110px 110px; }
-        body.theme-brief-history .app-bg { background:linear-gradient(180deg,#000,#1a1a1a,#fff); }
-        body.theme-brief-history .app-bg::after { background: radial-gradient(circle at 80% 20%, transparent 70px, rgba(212,175,55,0.3) 70px, rgba(212,175,55,0.3) 72px, transparent 72px); background-size: 250px 250px; }
-        body.theme-ferryman .app-bg { background:linear-gradient(135deg,#e8734a,#c96040,#2a4a3a,#1a3c2a); }
-        body.theme-ferryman .app-bg::after { background-image: repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(200,150,90,0.2) 30px, rgba(200,150,90,0.2) 32px), repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(200,100,60,0.15) 60px, rgba(200,100,60,0.15) 62px); }
-        body.theme-strawberry-sweet .app-bg { background:linear-gradient(135deg,#fce4ec,#f8bbd0,#f48fb1); }
-        body.theme-strawberry-sweet .app-bg::after { background-image: radial-gradient(ellipse at 50% 40%, transparent 25%, rgba(236,64,122,0.3) 25%, rgba(236,64,122,0.3) 30%, transparent 30%); background-size: 50px 50px; opacity:0.25; }
-        body.theme-sunny-cloud .app-bg { background:linear-gradient(180deg,#bbdefb,#e3f2fd,#fff); }
-        body.theme-sunny-cloud .app-bg::after { background-image: radial-gradient(circle at 25% 40%, rgba(255,255,255,0.5) 25px, transparent 25px), radial-gradient(circle at 65% 60%, rgba(255,255,255,0.4) 35px, transparent 35px); background-size: 200px 200px, 250px 250px; }
-        body.theme-rose-pink .app-bg { background:linear-gradient(135deg,#e91e63,#f06292,#f48fb1); }
-        body.theme-rose-pink .app-bg::after { background-image: linear-gradient(45deg, rgba(233,30,99,0.15) 1px, transparent 1px), linear-gradient(-45deg, rgba(233,30,99,0.15) 1px, transparent 1px); background-size: 35px 35px; }
-        body.theme-ritzlicht .app-bg { background:linear-gradient(135deg,#e3f2fd,#e8d5b0,#f5e6c8,#d4a843,#bbdefb); background-size:300% 300%; animation:ritzShift 20s ease infinite; }
-        @keyframes ritzShift { 0%,100%{background-position:0% 50%;} 50%{background-position:100% 50%;} }
-        body.theme-ritzlicht .app-bg::after { background-image: radial-gradient(ellipse at 35% 55%, rgba(230,184,96,0.4) 2px, transparent 2px), radial-gradient(ellipse at 65% 25%, rgba(0,71,171,0.35) 2px, transparent 2px); background-size: 70px 70px, 90px 90px; }
-        body.theme-night-diner .app-bg { background:linear-gradient(180deg,#1a2233,#2d3a4a,#f5a623); }
-        body.theme-night-diner .app-bg::after { background-image: repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(245,166,35,0.15) 35px, rgba(245,166,35,0.15) 37px); }
-        body.theme-star-rail .app-bg { background:linear-gradient(180deg,#0a0a2e,#1a1a4a,#1e3a5f,#0d1b2a); }
-        body.theme-star-rail .app-bg::after { background-image: radial-gradient(1px 1px at 30% 40%, rgba(192,208,224,0.6) 1px, transparent 1px), radial-gradient(1px 1px at 70% 60%, rgba(192,208,224,0.5) 1px, transparent 1px); background-size: 100px 100px, 140px 140px; }
-        body.theme-firefly-forest .app-bg { background:linear-gradient(180deg,#0a1a0a,#1a3a1a,#0d2a0d,#1a4a1a); }
-        body.theme-firefly-forest .app-bg::after { background-image: radial-gradient(circle at 20% 35%, rgba(160,216,96,0.5) 2px, transparent 2px), radial-gradient(circle at 55% 70%, rgba(160,216,96,0.35) 3px, transparent 3px); background-size: 80px 80px, 120px 120px; }
-        body.theme-vintage-film .app-bg { background:linear-gradient(180deg,#3a2a1a,#5a4a3a,#8a7a6a,#c8b898); }
-        body.theme-vintage-film .app-bg::after { background-image: repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(200,184,152,0.2) 15px, rgba(200,184,152,0.2) 17px); background-size: 100% 18px; }
-
-        .app-container { max-width:1200px; margin:0 auto; padding:0.5rem; height:100vh; display:flex; flex-direction:column; }
-        .auth-card { max-width:400px; margin:auto; background:rgba(30,30,45,0.95); border-radius:1.5rem; padding:2rem; text-align:center; }
-        input,select,textarea { width:100%; padding:10px; margin:5px 0; border-radius:8px; border:1px solid #444; background:#1a1a2e; color:white; font-size:0.95rem; font-family:inherit; }
-        button { padding:10px 16px; border:none; border-radius:8px; background:#e05050; color:white; font-weight:600; cursor:pointer; font-size:0.9rem; }
+        :root {
+            --bg: #f0f2f5; --surface: #fff; --surface2: #f5f5f5; --text: #1e293b;
+            --text2: #64748b; --border: #e2e8f0; --accent: #FF7F7F; --msg-self: #FF7F7F;
+            --msg-other: #e4e6eb; --sidebar-bg: #f8fafc; --chat-bg: #fff;
+        }
+        body.dark {
+            --bg: #0f1217; --surface: #1a1c28; --surface2: #242636; --text: #eef;
+            --text2: #94a3b8; --border: #2c2e40; --accent: #c04040; --msg-self: #c04040;
+            --msg-other: #2c2e3e; --sidebar-bg: #141622; --chat-bg: #1a1c28;
+        }
+        body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:all 0.3s; }
+        .app-bg { position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1; background:var(--bg); }
+        .app-container { max-width:1000px; margin:0 auto; padding:0.5rem; height:100vh; display:flex; flex-direction:column; }
+        .auth-card { max-width:400px; margin:auto; background:var(--surface); border-radius:1.5rem; padding:2rem; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+        input,select,textarea { width:100%; padding:10px; margin:5px 0; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:0.95rem; font-family:inherit; }
+        button { padding:10px 16px; border:none; border-radius:8px; background:var(--accent); color:white; font-weight:600; cursor:pointer; font-size:0.9rem; }
         button:hover { opacity:0.85; }
-        .chat-layout { display:flex; gap:0.8rem; height:100%; background:rgba(15,15,25,0.8); border-radius:1rem; padding:0.8rem; overflow:hidden; transition:opacity 0.3s; }
-        .chat-layout.hidden-chat { opacity:0; pointer-events:none; }
-        .sidebar { width:220px; background:rgba(0,0,0,0.3); border-radius:0.8rem; padding:0.8rem; overflow-y:auto; display:flex; flex-direction:column; flex-shrink:0; }
-        .sidebar h3 { margin-bottom:0.5rem; font-size:0.9rem; }
-        .user-item { padding:0.4rem 0.5rem; border-radius:0.5rem; cursor:pointer; display:flex; align-items:center; gap:0.4rem; font-size:0.85rem; }
-        .user-item:hover { background:rgba(255,255,255,0.1); }
-        .online-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-        .user-avatar { width:20px; height:20px; border-radius:50%; object-fit:cover; flex-shrink:0; }
-        .title-tag { font-size:0.6rem; background:#555; padding:1px 5px; border-radius:0.5rem; }
-        .status-text { font-size:0.65rem; color:#aaa; margin-left:auto; max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .chat-layout { display:flex; gap:0.5rem; height:100%; background:var(--chat-bg); border-radius:1rem; padding:0.5rem; overflow:hidden; }
+        .sidebar { width:200px; background:var(--sidebar-bg); border-radius:0.8rem; padding:0.5rem; overflow-y:auto; display:flex; flex-direction:column; flex-shrink:0; }
+        .sidebar h3 { margin-bottom:0.5rem; font-size:0.85rem; }
+        .user-item { padding:0.3rem 0.5rem; border-radius:0.5rem; display:flex; align-items:center; gap:0.3rem; font-size:0.8rem; }
+        .user-item:hover { background:rgba(128,128,128,0.1); }
+        .online-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+        .user-avatar { width:22px; height:22px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+        .title-tag { font-size:0.55rem; background:var(--accent); color:white; padding:1px 5px; border-radius:0.5rem; opacity:0.8; }
         .main-area { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden; }
-        .top-bar { display:flex; gap:0.3rem; margin-bottom:0.5rem; flex-wrap:wrap; align-items:center; flex-shrink:0; }
-        .tab-btn { padding:0.4rem 0.8rem; border-radius:0.5rem; background:rgba(255,255,255,0.1); border:none; color:#aaa; cursor:pointer; font-size:0.8rem; }
-        .tab-btn.active { background:#e05050; color:white; }
-        .announce-bar { background:rgba(255,180,60,0.2); padding:0.4rem 0.8rem; border-radius:0.5rem; margin-bottom:0.5rem; font-size:0.8rem; overflow:hidden; white-space:nowrap; flex-shrink:0; }
-        .poll-bar { background:rgba(100,180,255,0.2); padding:0.4rem 0.8rem; border-radius:0.5rem; margin-bottom:0.5rem; font-size:0.8rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; flex-shrink:0; }
-        .poll-bar button { font-size:0.7rem; padding:4px 10px; }
-        .chat-messages { flex:1; overflow-y:auto; padding:0.5rem; display:flex; flex-direction:column; gap:0.6rem; min-height:0; }
-        .message { max-width:75%; flex-shrink:0; }
+        .top-bar { display:flex; gap:0.3rem; margin-bottom:0.4rem; align-items:center; flex-shrink:0; flex-wrap:wrap; }
+        .tab-btn { padding:0.3rem 0.7rem; border-radius:0.5rem; background:var(--surface2); border:none; color:var(--text2); cursor:pointer; font-size:0.75rem; }
+        .tab-btn.active { background:var(--accent); color:white; }
+        .announce-bar { background:rgba(245,158,11,0.15); padding:0.3rem 0.6rem; border-radius:0.5rem; margin-bottom:0.4rem; font-size:0.75rem; overflow:hidden; white-space:nowrap; flex-shrink:0; }
+        .chat-messages { flex:1; overflow-y:auto; padding:0.4rem; display:flex; flex-direction:column; gap:0.5rem; min-height:0; }
+        .message { max-width:80%; flex-shrink:0; }
         .message.self { align-self:flex-end; }
-        .message-bubble { background:#2a2a3a; padding:0.5rem 0.8rem; border-radius:0.8rem; font-size:0.85rem; word-wrap:break-word; }
-        .message.self .message-bubble { background:#c04040; }
+        .message-bubble { background:var(--msg-other); padding:0.4rem 0.7rem; border-radius:0.7rem; font-size:0.8rem; word-wrap:break-word; }
+        .message.self .message-bubble { background:var(--msg-self); color:white; }
         .message-info { font-size:0.6rem; opacity:0.6; margin-bottom:0.1rem; }
-        .input-area { display:flex; gap:0.5rem; margin-top:0.5rem; flex-shrink:0; }
+        .input-area { display:flex; gap:0.4rem; margin-top:0.4rem; flex-shrink:0; }
         .input-area input { flex:1; margin:0; }
         .input-area button { width:auto; }
-        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100; display:flex; align-items:center; justify-content:center; }
-        .modal-box { background:#1e1e32; border-radius:1rem; padding:1.5rem; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; }
-        .guestbook-item { background:rgba(255,255,255,0.05); padding:0.5rem; border-radius:0.5rem; margin-bottom:0.4rem; font-size:0.85rem; }
+        .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; display:flex; align-items:center; justify-content:center; }
+        .modal-box { background:var(--surface); border-radius:1rem; padding:1.5rem; max-width:500px; width:92%; max-height:85vh; overflow-y:auto; }
+        .guestbook-item { background:var(--surface2); padding:0.4rem 0.6rem; border-radius:0.5rem; margin-bottom:0.3rem; font-size:0.8rem; }
+        .archive-detail { background:var(--surface2); padding:0.8rem; border-radius:0.8rem; margin-top:0.3rem; font-size:0.85rem; line-height:1.5; }
         .footer-note { text-align:center; padding:0.3rem; font-size:0.6rem; opacity:0.3; }
-        .hide-chat-btn { position:fixed; bottom:1rem; right:1rem; z-index:50; width:40px; height:40px; border-radius:50%; background:rgba(0,0,0,0.5); color:white; border:none; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .bottom-nav { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); padding:0.4rem; z-index:50; justify-content:space-around; }
+        .bottom-nav button { background:none; color:var(--text2); font-size:0.7rem; display:flex; flex-direction:column; align-items:center; gap:0.1rem; padding:0.3rem; }
+        .bottom-nav button.active { color:var(--accent); }
+        .crop-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:200; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+        .crop-container { position:relative; width:280px; height:280px; overflow:hidden; border-radius:1rem; }
+        .crop-container img { position:absolute; max-width:none; }
+        .crop-frame { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:200px; height:200px; border:2px dashed white; border-radius:50%; pointer-events:none; }
+        @media (max-width:768px) {
+            .sidebar { display:none; }
+            .bottom-nav { display:flex; }
+            .app-container { padding-bottom:3.5rem; }
+            .message { max-width:90%; }
+        }
     </style>
 </head>
 <body>
 <div class="app-bg"></div>
-<button class="hide-chat-btn" onclick="toggleChat()" title="隐藏/显示聊天">👁️</button>
 <div id="app">
     <div id="authView" class="app-container" style="justify-content:center;">
         <div class="auth-card">
@@ -83,30 +76,29 @@
             <input type="text" id="loginId" placeholder="ID">
             <input type="password" id="loginPwd" placeholder="密码">
             <button onclick="doLogin()">登录</button>
-            <button onclick="showRegister()" style="background:#555;margin-top:0.3rem;">注册</button>
-            <p id="loginError" style="color:#ff6b6b;font-size:0.8rem;"></p>
+            <button onclick="showRegister()" style="background:var(--surface2);color:var(--text);margin-top:0.3rem;">注册</button>
+            <p id="loginError" style="color:#ef4444;font-size:0.8rem;"></p>
         </div>
     </div>
     <div id="chatView" class="app-container" style="display:none;">
-        <div class="chat-layout" id="chatLayout">
-            <div class="sidebar">
+        <div class="chat-layout">
+            <div class="sidebar" id="sidebar">
                 <h3>👥 成员</h3>
-                <input type="text" id="userSearch" placeholder="搜索..." style="font-size:0.8rem;padding:6px;">
+                <input type="text" id="userSearch" placeholder="搜索..." style="font-size:0.75rem;padding:6px;">
                 <div id="userList" style="flex:1;overflow-y:auto;margin-top:0.3rem;"></div>
-                <button onclick="logout()" style="margin-top:0.5rem;font-size:0.75rem;">登出</button>
+                <button onclick="logout()" style="margin-top:0.5rem;font-size:0.7rem;background:var(--surface2);color:var(--text);">登出</button>
             </div>
             <div class="main-area">
                 <div class="top-bar">
-                    <button class="tab-btn active" onclick="switchTab('chat')">💬 通讯</button>
-                    <button class="tab-btn" onclick="switchTab('guestbook')">📝 留言</button>
-                    <button class="tab-btn" onclick="switchTab('archive')">📖 档案</button>
+                    <span style="font-weight:600;font-size:0.85rem;">环城通讯</span>
                     <span style="flex:1;"></span>
-                    <span id="currentUserDisplay" style="font-size:0.8rem;opacity:0.7;cursor:pointer;" onclick="setStatus()"></span>
-                    <button onclick="openThemePanel()" style="background:none;font-size:1rem;">🎨</button>
+                    <button class="tab-btn active" onclick="switchTab('chat')">💬</button>
+                    <button class="tab-btn" onclick="switchTab('archive')">📖</button>
+                    <span id="currentUserDisplay" style="font-size:0.75rem;opacity:0.7;cursor:pointer;" onclick="openProfile()"></span>
+                    <button onclick="toggleDark()" style="background:none;font-size:1rem;">🌙</button>
                     <button id="adminBtn" onclick="openAdminPanel()" style="display:none;background:none;">⚙️</button>
                 </div>
                 <div id="announceBar" class="announce-bar" style="display:none;"></div>
-                <div id="pollBar" class="poll-bar" style="display:none;"></div>
                 <div id="chatPanel">
                     <div class="chat-messages" id="chatMessages"><p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p></div>
                     <div class="input-area">
@@ -114,19 +106,19 @@
                         <button onclick="sendMessage()">发送</button>
                     </div>
                 </div>
-                <div id="guestbookPanel" style="display:none;flex:1;overflow-y:auto;padding:0.5rem;min-height:0;">
-                    <div id="guestbookList"></div>
-                    <div class="input-area">
-                        <input type="text" id="guestbookInput" placeholder="在墙上留一句话...">
-                        <button onclick="postGuestbook()">留言</button>
-                    </div>
-                </div>
-                <div id="archivePanel" style="display:none;flex:1;overflow-y:auto;padding:0.5rem;min-height:0;">
-                    <input type="text" id="worldSearch" placeholder="🔍 搜索档案...">
-                    <div id="worldCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:0.5rem;margin-top:0.5rem;"></div>
+                <div id="archivePanel" style="display:none;flex:1;overflow-y:auto;padding:0.3rem;min-height:0;">
+                    <input type="text" id="worldSearch" placeholder="🔍 搜索档案..." style="margin-bottom:0.4rem;">
+                    <div id="worldCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.4rem;"></div>
                 </div>
             </div>
         </div>
+    </div>
+    <div class="bottom-nav" id="bottomNav">
+        <button class="active" onclick="switchTab('chat')">💬 通讯</button>
+        <button onclick="switchTab('guestbook')">📝 留言</button>
+        <button onclick="switchTab('archive')">📖 档案</button>
+        <button onclick="openProfile()">👤 我</button>
+        <button onclick="openAdminPanel()" id="adminBtnMobile" style="display:none;">⚙️</button>
     </div>
 </div>
 <div class="footer-note">隙相·不归档·不保留·阅后即忘</div>
@@ -138,37 +130,21 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ringDB = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
 const MODERATORS = ["Danfilnak", "admin"];
 let currentUser = null, currentTab = 'chat';
-const renderedMsgIds = new Set();
-let lastMsgTimestamp = 0;
-
-const THEMES = [
-    { id:'ringcity', name:'环城珊瑚', emoji:'🏛️' },
-    { id:'swamp-witch', name:'沼泽巫女', emoji:'🔮' },
-    { id:'brief-history', name:'时间简史', emoji:'⌛' },
-    { id:'ferryman', name:'摆渡巫师', emoji:'⛩️' },
-    { id:'strawberry-sweet', name:'草莓甜心', emoji:'❤' },
-    { id:'sunny-cloud', name:'晴天初云', emoji:'☁️' },
-    { id:'rose-pink', name:'玫粉主题', emoji:'🌸' },
-    { id:'ritzlicht', name:'瑞茨尔专属', emoji:'🐱' },
-    { id:'night-diner', name:'深夜食堂', emoji:'🍜' },
-    { id:'star-rail', name:'星穹铁道', emoji:'🌌' },
-    { id:'firefly-forest', name:'萤火之森', emoji:'🌿' },
-    { id:'vintage-film', name:'旧日胶片', emoji:'📷' }
-];
+const renderedMsgIds = new Set(); let lastMsgTimestamp = 0;
 
 const defaultWorld = [
-    { id:1, title:"环城区域划分", content:"从内到外：天之柱→神域→中坚都市→高街区→外圈→暗巷→外界城→里界。地下有夜都。" },
-    { id:2, title:"隙民 / 隙相", content:"活在环城规则缝隙中的族群。无固定身份，擅长走私、偷渡、传话。代表人物：利希塔·瑞茨尔。" },
-    { id:3, title:"环三角", content:"环城的执法利刃。神域由万斯独自看守——空间切割能力，已死亡277次。" },
-    { id:4, title:"徽旗派", content:"丽塔·多其米拉·尤尔特领导的组织。丽塔拥有「偷换概念」能力。" },
-    { id:5, title:"夜都", content:"环城地下的巨大废墟都会，交易着环城禁止的一切。" }
+    { id:1, title:"环城区域划分", content:"环城从内到外依次为：天之柱→神域→中坚都市/内环→高街区/中环→外圈→暗巷→外界城→里界。地下有夜都。" },
+    { id:2, title:"隙民 / 隙相", content:"活在环城规则缝隙中的族群。无固定身份，擅长走私、偷渡、传话。理事会私下称其为「隙相(Gap-phase)」。代表人物：利希塔·瑞茨尔。" },
+    { id:3, title:"环三角", content:"环城的执法利刃，各圈均有部署。神域由万斯独自看守——空间切割能力，已正式死亡277次。" },
+    { id:4, title:"徽旗派", content:"丽塔·多其米拉·尤尔特领导的组织，口号是消除阶级差异。丽塔拥有「偷换概念」能力。" },
+    { id:5, title:"城界禁令", content:"公民活动范围仅限环城之内。暗巷居民不具备公民资格。遵守规则，即是守护您的幸福。" },
+    { id:6, title:"夜都", content:"环城地下的巨大废墟都会，没有招牌的店铺交易着环城禁止的一切。隙民常在此接活。" }
 ];
 
-// 背景隐藏
-window.toggleChat = () => {
-    document.getElementById('chatLayout').classList.toggle('hidden-chat');
-    const btn = document.querySelector('.hide-chat-btn');
-    btn.innerText = document.getElementById('chatLayout').classList.contains('hidden-chat') ? '👁️‍🗨️' : '👁️';
+window.toggleDark = () => {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    document.querySelector('.top-bar button[onclick="toggleDark()"]').innerText = document.body.classList.contains('dark') ? '☀️' : '🌙';
 };
 
 window.showRegister = () => {
@@ -176,7 +152,7 @@ window.showRegister = () => {
     if (!id || !/^[a-zA-Z0-9_]+$/.test(id)) return alert('ID格式错误');
     const pwd = prompt('输入密码：');
     if (!pwd) return;
-    ringDB.from('users').insert({ id, pwd, theme:'ringcity', unlocked_themes:'["ringcity"]', view_mode:'desktop', last_active:Date.now(), title:'', status:'', avatar:'', title_approved:false }).then(r => {
+    ringDB.from('users').insert({ id, pwd, theme:'ringcity', unlocked_themes:'["ringcity"]', last_active:Date.now(), title:'', status:'', avatar:'', title_approved:false, avatar_approved:false }).then(r => {
         if (r.error) return alert('注册失败：' + r.error.message);
         alert('✅ 注册成功！请登录');
     });
@@ -188,347 +164,238 @@ window.doLogin = async () => {
     const { data } = await ringDB.from('users').select('*').eq('id', id).eq('pwd', pwd);
     if (!data || data.length === 0) return document.getElementById('loginError').innerText = 'ID或密码错误';
     currentUser = data[0];
-    if (!currentUser.unlocked_themes) currentUser.unlocked_themes = ['ringcity'];
-    if (typeof currentUser.unlocked_themes === 'string') currentUser.unlocked_themes = JSON.parse(currentUser.unlocked_themes);
     document.getElementById('authView').style.display = 'none';
     document.getElementById('chatView').style.display = 'flex';
     updateCurrentUserDisplay();
-    document.getElementById('adminBtn').style.display = MODERATORS.includes(currentUser.id) ? 'inline-block' : 'none';
-    applyTheme(currentUser.theme || 'ringcity');
+    const isAdmin = MODERATORS.includes(currentUser.id);
+    document.getElementById('adminBtn').style.display = isAdmin ? 'inline-block' : 'none';
+    document.getElementById('adminBtnMobile').style.display = isAdmin ? 'flex' : 'none';
     await ringDB.from('users').update({ last_active: Date.now() }).eq('id', id);
-    renderedMsgIds.clear();
-    lastMsgTimestamp = 0;
+    renderedMsgIds.clear(); lastMsgTimestamp = 0;
     document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">加载中...</p>';
-    loadMessages(true);
-    loadUsers();
-    loadAnnouncement();
-    loadPoll();
-    loadArchive();
+    loadMessages(true); loadUsers(); loadAnnouncement(); loadArchive();
     setInterval(() => loadMessages(false), 3000);
     setInterval(loadUsers, 15000);
+    if (localStorage.getItem('darkMode')==='true') { document.body.classList.add('dark'); document.querySelector('.top-bar button[onclick="toggleDark()"]').innerText='☀️'; }
 };
 
 function updateCurrentUserDisplay() {
-    const display = document.getElementById('currentUserDisplay');
     const parts = [currentUser.id];
-    if (currentUser.title_approved && currentUser.title) parts.push('· ' + currentUser.title);
-    else if (currentUser.title && !currentUser.title_approved) parts.push('· [待审] ' + currentUser.title);
-    if (currentUser.status) parts.push('— ' + currentUser.status);
-    display.innerText = parts.join(' ');
+    if (currentUser.title_approved && currentUser.title) parts.push('· '+currentUser.title);
+    document.getElementById('currentUserDisplay').innerText = parts.join(' ');
 }
 
-function applyTheme(themeId) {
-    document.body.className = document.body.className.replace(/theme-\S+/g, '').replace(/\s+/g, ' ').trim();
-    if (themeId && themeId !== 'ringcity') document.body.classList.add(`theme-${themeId}`);
-}
-
-window.logout = () => { currentUser = null; document.getElementById('authView').style.display='flex'; document.getElementById('chatView').style.display='none'; };
+window.logout = () => { currentUser=null; document.getElementById('authView').style.display='flex'; document.getElementById('chatView').style.display='none'; };
 
 window.switchTab = (tab) => {
     currentTab = tab;
-    document.getElementById('chatPanel').style.display = tab==='chat'?'block':'none';
-    document.getElementById('guestbookPanel').style.display = tab==='guestbook'?'flex':'none';
+    document.getElementById('chatPanel').style.display = tab==='chat'||tab==='guestbook'?'block':'none';
     document.getElementById('archivePanel').style.display = tab==='archive'?'block':'none';
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    if (tab==='chat') document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    if (tab==='guestbook') { document.querySelectorAll('.tab-btn')[1].classList.add('active'); loadGuestbook(); }
-    if (tab==='archive') { document.querySelectorAll('.tab-btn')[2].classList.add('active'); loadArchive(); }
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.bottom-nav button').forEach(b=>b.classList.remove('active'));
+    if (tab==='chat') { document.querySelector('.tab-btn:nth-of-type(1)').classList.add('active'); document.querySelectorAll('.bottom-nav button')[0].classList.add('active'); }
+    if (tab==='guestbook') { loadGuestbook(); document.querySelectorAll('.bottom-nav button')[1].classList.add('active'); }
+    if (tab==='archive') { document.querySelector('.tab-btn:nth-of-type(2)').classList.add('active'); document.querySelectorAll('.bottom-nav button')[2].classList.add('active'); loadArchive(); }
+    if (tab==='guestbook') {
+        document.getElementById('chatMessages').innerHTML = '<div id="guestbookList" style="flex:1;overflow-y:auto;"></div><div class="input-area"><input type="text" id="guestbookInput" placeholder="在墙上留一句话..."><button onclick="postGuestbook()">留言</button></div>';
+        loadGuestbook();
+    }
+    if (tab==='chat') { document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">加载中...</p>'; loadMessages(true); }
 };
 
 async function loadMessages(isInitial) {
-    const { data } = await ringDB.from('messages').select('*').order('timestamp', { ascending: true }).limit(200);
-    if (!data || data.length === 0) {
-        if (isInitial) document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>';
-        return;
-    }
+    const { data } = await ringDB.from('messages').select('*').order('timestamp',{ascending:true}).limit(200);
     const container = document.getElementById('chatMessages');
+    if (!container || currentTab==='guestbook' || currentTab==='archive') return;
+    if (!data||data.length===0) { if(isInitial) container.innerHTML='<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>'; return; }
     const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-    if (isInitial) {
-        container.innerHTML = '';
-        renderedMsgIds.clear();
-        data.forEach(m => appendMessage(m));
-    } else {
-        const newMsgs = data.filter(m => m.timestamp > lastMsgTimestamp);
-        newMsgs.forEach(m => { if (!renderedMsgIds.has(m.id)) appendMessage(m); });
-    }
-    if (data.length > 0) lastMsgTimestamp = data[data.length - 1].timestamp;
-    if (wasAtBottom || isInitial) container.scrollTop = container.scrollHeight;
+    if (isInitial) { container.innerHTML=''; renderedMsgIds.clear(); data.forEach(m=>appendMessage(m)); }
+    else { data.filter(m=>m.timestamp>lastMsgTimestamp).forEach(m=>{ if(!renderedMsgIds.has(m.id)) appendMessage(m); }); }
+    if(data.length>0) lastMsgTimestamp=data[data.length-1].timestamp;
+    if(wasAtBottom||isInitial) container.scrollTop=container.scrollHeight;
 }
 
 function appendMessage(m) {
     renderedMsgIds.add(m.id);
     const container = document.getElementById('chatMessages');
-    if (container.querySelector('p[style]')) container.innerHTML = '';
-    const isSelf = currentUser && m.from === currentUser.id;
+    if (container.querySelector('p[style]')) container.innerHTML='';
+    const isSelf = currentUser && m.from===currentUser.id;
     const div = document.createElement('div');
-    div.className = `message ${isSelf ? 'self' : 'other'}`;
-    div.innerHTML = `<div class="message-info">${m.from} ${new Date(m.timestamp).toLocaleTimeString()}</div><div class="message-bubble">${m.content}</div>`;
+    div.className=`message ${isSelf?'self':'other'}`;
+    div.innerHTML=`<div class="message-info">${m.from} ${new Date(m.timestamp).toLocaleTimeString()}</div><div class="message-bubble">${m.content}</div>`;
     container.appendChild(div);
 }
 
 window.sendMessage = async () => {
-    const inp = document.getElementById('messageInput');
-    if (!inp.value.trim()) return;
-    const msg = { from: currentUser.id, type: 'text', content: inp.value.trim(), timestamp: Date.now() };
-    const { data } = await ringDB.from('messages').insert(msg).select();
-    inp.value = '';
-    if (data?.[0]) appendMessage(data[0]);
-    const container = document.getElementById('chatMessages');
-    container.scrollTop = container.scrollHeight;
-    const { data: allMsgs } = await ringDB.from('messages').select('id').order('timestamp', { ascending: true });
-    if (allMsgs && allMsgs.length > 200) {
-        const toDel = allMsgs.slice(0, allMsgs.length - 200);
-        for (const m of toDel) await ringDB.from('messages').delete().eq('id', m.id);
-    }
+    const inp = document.getElementById('messageInput'); if (!inp.value.trim()) return;
+    await ringDB.from('messages').insert({ from:currentUser.id, type:'text', content:inp.value.trim(), timestamp:Date.now() });
+    inp.value=''; loadMessages(true);
 };
 
 async function loadUsers() {
     const { data } = await ringDB.from('users').select('*');
-    const kw = (document.getElementById('userSearch')?.value || '').toLowerCase();
-    const filtered = (data || []).filter(u => u.id.toLowerCase().includes(kw));
+    const kw = (document.getElementById('userSearch')?.value||'').toLowerCase();
+    const filtered = (data||[]).filter(u=>u.id.toLowerCase().includes(kw));
     const now = Date.now();
-    document.getElementById('userList').innerHTML = filtered.map(u => {
-        const diff = now - (u.last_active || 0);
-        const dot = diff < 180000 ? '#4ade80' : diff < 900000 ? '#fbbf24' : '#888';
-        const avatar = u.avatar && u.avatar_approved ? `<img src="${u.avatar}" class="user-avatar">` : '';
-        return `<div class="user-item" onclick="openPrivateChat('${u.id}')"><span class="online-dot" style="background:${dot};"></span>${avatar}${u.id}${u.title_approved && u.title?`<span class="title-tag">${u.title}</span>`:''}<span class="status-text">${u.status||''}</span></div>`;
+    const list = document.getElementById('userList'); if (!list) return;
+    list.innerHTML = filtered.map(u=>{
+        const diff = now-(u.last_active||0);
+        const dot = diff<180000?'#4ade80':diff<900000?'#fbbf24':'#888';
+        const avatar = u.avatar&&u.avatar_approved?`<img src="${u.avatar}" class="user-avatar">`:'';
+        return `<div class="user-item"><span class="online-dot" style="background:${dot};"></span>${avatar}${u.id}${u.title_approved&&u.title?`<span class="title-tag">${u.title}</span>`:''}</div>`;
     }).join('');
 }
 
-window.openPrivateChat = async (targetId) => {
-    if (targetId === currentUser.id) return;
-    const { data } = await ringDB.from('private_messages').select('*').or(`sender.eq.${currentUser.id},receiver.eq.${currentUser.id}`).or(`sender.eq.${targetId},receiver.eq.${targetId}`).order('timestamp', { ascending: true });
-    const msgs = (data || []).filter(m => (m.sender===currentUser.id && m.receiver===targetId) || (m.sender===targetId && m.receiver===currentUser.id));
-    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
-    overlay.innerHTML = `<div class="modal-box"><h3>💬 私信 · ${targetId}</h3><div style="max-height:300px;overflow-y:auto;margin-bottom:0.5rem;">${msgs.map(m=>`<div style="margin:0.3rem 0;"><b>${m.sender}:</b> ${m.content} <span style="font-size:0.6rem;opacity:0.5;">${new Date(m.timestamp).toLocaleTimeString()}</span></div>`).join('')||'<p style="opacity:0.5;">暂无消息</p>'}</div><div style="display:flex;gap:0.3rem;"><input id="pmInput" placeholder="私信内容..."><button onclick="sendPM('${targetId}',this)">发送</button></div><button onclick="this.closest('.modal-overlay').remove()" style="margin-top:0.5rem;background:#555;">关闭</button></div>`;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-};
-
-window.sendPM = async (targetId, btn) => {
-    const inp = btn.parentElement.querySelector('input');
-    if (!inp.value.trim()) return;
-    await ringDB.from('private_messages').insert({ sender: currentUser.id, receiver: targetId, content: inp.value.trim(), timestamp: Date.now() });
-    btn.closest('.modal-overlay').remove();
-    openPrivateChat(targetId);
-};
-
 async function loadGuestbook() {
-    const { data } = await ringDB.from('guestbook').select('*').order('timestamp', { ascending: false }).limit(50);
-    document.getElementById('guestbookList').innerHTML = (data||[]).map(g => `<div class="guestbook-item"><b>${g.author}</b>: ${g.content} <span style="font-size:0.6rem;opacity:0.5;">${new Date(g.timestamp).toLocaleString()}</span></div>`).join('') || '<p style="opacity:0.5;">墙上空空如也</p>';
+    const { data } = await ringDB.from('guestbook').select('*').order('timestamp',{ascending:false}).limit(50);
+    const container = document.getElementById('guestbookList');
+    if (!container) return;
+    container.innerHTML = (data||[]).map(g=>`<div class="guestbook-item"><b>${g.author}</b>: ${g.content}</div>`).join('')||'<p style="opacity:0.5;">墙上空空如也</p>';
 }
 
 window.postGuestbook = async () => {
     const inp = document.getElementById('guestbookInput');
     if (!inp.value.trim()) return;
-    await ringDB.from('guestbook').insert({ author: currentUser.id, content: inp.value.trim(), timestamp: Date.now() });
-    inp.value = '';
-    loadGuestbook();
-};
-
-window.setStatus = async () => {
-    const s = prompt('设置个人状态（留空清除）：', currentUser.status || '');
-    if (s === null) return;
-    await ringDB.from('users').update({ status: s }).eq('id', currentUser.id);
-    currentUser.status = s;
-    updateCurrentUserDisplay();
-    loadUsers();
+    await ringDB.from('guestbook').insert({ author:currentUser.id, content:inp.value.trim(), timestamp:Date.now() });
+    inp.value=''; loadGuestbook();
 };
 
 async function loadAnnouncement() {
-    const { data } = await ringDB.from('world').select('data').eq('id', 1).single();
-    const wd = data ? data.data : defaultWorld;
-    const announce = wd.find(i => i.id === 999);
+    const { data } = await ringDB.from('world').select('data').eq('id',1).single();
+    const wd = data?data.data:defaultWorld;
+    const announce = wd.find(i=>i.id===999);
     const bar = document.getElementById('announceBar');
-    if (announce) { bar.style.display = 'block'; bar.innerText = '📢 ' + announce.content; }
-    else bar.style.display = 'none';
+    if (announce) { bar.style.display='block'; bar.innerText='📢 '+announce.content; }
+    else bar.style.display='none';
 }
-
-async function loadPoll() {
-    const { data } = await ringDB.from('polls').select('*').eq('active', true).order('timestamp', { ascending: false }).limit(1);
-    const bar = document.getElementById('pollBar');
-    if (!data || data.length === 0) { bar.style.display = 'none'; return; }
-    const poll = data[0];
-    const { data: votes } = await ringDB.from('poll_votes').select('*').eq('poll_id', poll.id);
-    const hasVoted = (votes || []).find(v => v.voter === currentUser.id);
-    bar.style.display = 'flex';
-    bar.innerHTML = `<span>📊 ${poll.question}</span>` + JSON.parse(poll.options).map((opt, i) => {
-        const count = (votes || []).filter(v => v.option_index === i).length;
-        return `<button onclick="votePoll(${poll.id},${i})" ${hasVoted?'disabled':''}>${opt} (${count})</button>`;
-    }).join('');
-}
-
-window.votePoll = async (pollId, optIdx) => {
-    await ringDB.from('poll_votes').insert({ poll_id: pollId, voter: currentUser.id, option_index: optIdx, timestamp: Date.now() });
-    loadPoll();
-};
 
 async function loadArchive() {
-    const { data } = await ringDB.from('world').select('data').eq('id', 1).single();
-    const wd = data ? data.data : defaultWorld;
-    const kw = (document.getElementById('worldSearch')?.value || '').toLowerCase();
-    const filtered = wd.filter(i => i.title.toLowerCase().includes(kw) || i.content.toLowerCase().includes(kw));
-    document.getElementById('worldCards').innerHTML = filtered.map(i => `<div class="guestbook-item" style="cursor:pointer;" onclick="alert('${i.content.replace(/'/g,"\\'")}')"><b>📄 ${i.title}</b><p style="font-size:0.75rem;opacity:0.7;">${i.content.slice(0,60)}...</p></div>`).join('');
+    const { data } = await ringDB.from('world').select('data').eq('id',1).single();
+    const wd = data?data.data:defaultWorld;
+    const kw = (document.getElementById('worldSearch')?.value||'').toLowerCase();
+    const filtered = wd.filter(i=>i.title.toLowerCase().includes(kw)||i.content.toLowerCase().includes(kw));
+    document.getElementById('worldCards').innerHTML = filtered.map(i=>`
+        <div class="guestbook-item" style="cursor:pointer;" onclick="toggleArchiveDetail(this,'${i.id}')">
+            <b>📄 ${i.title}</b>
+            <p style="font-size:0.7rem;opacity:0.6;">${i.content.slice(0,50)}...</p>
+            <div class="archive-detail" style="display:none;">${i.content}</div>
+        </div>
+    `).join('');
 }
+
+window.toggleArchiveDetail = (el, id) => {
+    const detail = el.querySelector('.archive-detail');
+    detail.style.display = detail.style.display==='none'?'block':'none';
+};
+
+window.openProfile = () => {
+    const overlay = document.createElement('div'); overlay.className='modal-overlay';
+    overlay.innerHTML = `<div class="modal-box">
+        <h3>👤 ${currentUser.id}</h3>
+        ${currentUser.avatar_approved&&currentUser.avatar?`<img src="${currentUser.avatar}" style="width:60px;height:60px;border-radius:50%;margin:0.5rem 0;">`:'<div style="width:60px;height:60px;border-radius:50%;background:var(--surface2);margin:0.5rem 0;display:flex;align-items:center;justify-content:center;">📷</div>'}
+        <p style="font-size:0.8rem;">头衔：${currentUser.title_approved&&currentUser.title?currentUser.title:'无'}</p>
+        <p style="font-size:0.8rem;">状态：${currentUser.status||'未设置'}</p>
+        <button onclick="uploadAvatarPrompt()">📸 上传头像</button>
+        <button onclick="setStatus()" style="margin-top:0.3rem;">✏️ 设置状态</button>
+        <button onclick="this.closest('.modal-overlay').remove()" style="margin-top:0.5rem;background:var(--surface2);color:var(--text);">关闭</button>
+    </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',e=>{if(e.target===overlay) overlay.remove();});
+};
+
+window.uploadAvatarPrompt = () => {
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*';
+    inp.onchange = () => {
+        const file = inp.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image(); img.src = e.target.result;
+            img.onload = () => showCropModal(img);
+        };
+        reader.readAsDataURL(file);
+    };
+    inp.click();
+};
+
+function showCropModal(img) {
+    const overlay = document.createElement('div'); overlay.className='crop-overlay';
+    let scale=1, x=0, y=0;
+    const size = Math.min(img.width, img.height);
+    const initScale = 200/size;
+    scale = initScale;
+    overlay.innerHTML = `<div class="crop-container"><img src="${img.src}" id="cropImg" style="width:${img.width}px;height:${img.height}px;transform:translate(${x}px,${y}px) scale(${scale});transform-origin:0 0;"></div><div class="crop-frame"></div>
+        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;"><input type="range" min="0.5" max="3" step="0.1" value="${scale}" oninput="updateCropScale(this.value)"><button onclick="confirmCrop()">✅ 确认</button><button onclick="this.closest('.crop-overlay').remove()">取消</button></div>`;
+    document.body.appendChild(overlay);
+    window.updateCropScale = (v) => { scale=parseFloat(v); document.getElementById('cropImg').style.transform=`translate(${x}px,${y}px) scale(${scale})`; };
+    window.confirmCrop = async () => {
+        const cvs = document.createElement('canvas'); cvs.width=200; cvs.height=200;
+        const ctx = cvs.getContext('2d');
+        const sx = (img.width/2 - 100/scale); const sy = (img.height/2 - 100/scale);
+        ctx.drawImage(img, sx, sy, 200/scale, 200/scale, 0, 0, 200, 200);
+        const base64 = cvs.toDataURL('image/jpeg', 0.8);
+        await ringDB.from('users').update({ avatar: base64, avatar_approved: false }).eq('id', currentUser.id);
+        currentUser.avatar = base64; currentUser.avatar_approved = false;
+        alert('✅ 头像已提交审核');
+        document.querySelectorAll('.crop-overlay,.modal-overlay').forEach(e=>e.remove());
+        loadUsers();
+    };
+}
+
+window.setStatus = async () => {
+    const s = prompt('设置个人状态：', currentUser.status||'');
+    if (s===null) return;
+    await ringDB.from('users').update({ status:s }).eq('id', currentUser.id);
+    currentUser.status = s; loadUsers();
+};
 
 window.openAdminPanel = () => {
-    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+    if (!MODERATORS.includes(currentUser.id)) return;
+    const overlay = document.createElement('div'); overlay.className='modal-overlay';
     overlay.innerHTML = `<div class="modal-box"><h3>⚙️ 审核员控制台</h3>
-        <div style="margin:0.5rem 0;"><b>📸 头像审核</b><div id="adminAvatarList" style="max-height:150px;overflow-y:auto;"></div></div>
-        <div style="margin:0.5rem 0;"><b>🏷️ 头衔审核</b><div id="adminTitleList" style="max-height:150px;overflow-y:auto;"></div></div>
-        <div style="margin:0.5rem 0;"><b>👤 成员管理</b><div id="adminUserList" style="max-height:200px;overflow-y:auto;"></div></div>
-        <button onclick="createPoll()">🗳️ 发起投票</button>
-        <button onclick="generateReport()">📜 生成今日通告</button>
+        <div><b>📸 头像审核</b><div id="adminAvatarList"></div></div>
+        <div style="margin-top:0.5rem;"><b>🏷️ 头衔审核</b><div id="adminTitleList"></div></div>
+        <div style="margin-top:0.5rem;"><b>👤 成员管理</b><div id="adminUserList"></div></div>
         <button onclick="exportChat()">💾 导出记录</button>
         <button onclick="clearChat()">🗑️ 清空记录</button>
-        <button onclick="this.closest('.modal-overlay').remove()" style="background:#555;">关闭</button></div>`;
+        <button onclick="this.closest('.modal-overlay').remove()" style="background:var(--surface2);color:var(--text);">关闭</button></div>`;
     document.body.appendChild(overlay);
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-    loadAdminAvatarList();
-    loadAdminTitleList();
-    loadAdminUserList();
+    overlay.addEventListener('click',e=>{if(e.target===overlay) overlay.remove();});
+    loadAdminData();
 };
 
-async function loadAdminAvatarList() {
-    const { data } = await ringDB.from('users').select('*').not('avatar', 'is', null).eq('avatar_approved', false);
-    document.getElementById('adminAvatarList').innerHTML = (data||[]).length === 0 ? '<p style="opacity:0.5;">无待审头像</p>' :
-        data.map(u => `<div style="display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0;"><img src="${u.avatar}" style="width:30px;height:30px;border-radius:50%;"><span>${u.id}</span><button onclick="approveAvatar('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectAvatar('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('');
+async function loadAdminData() {
+    const { data:users } = await ringDB.from('users').select('*');
+    const { data:msgs } = await ringDB.from('messages').select('from');
+    const counts = {}; (msgs||[]).forEach(m=>{counts[m.from]=(counts[m.from]||0)+1;});
+    document.getElementById('adminAvatarList').innerHTML = (users||[]).filter(u=>u.avatar&&!u.avatar_approved).map(u=>`<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;"><img src="${u.avatar}" style="width:25px;height:25px;border-radius:50%;"><span style="font-size:0.7rem;">${u.id}</span><button onclick="approveAvatar('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectAvatar('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('')||'<p style="opacity:0.5;font-size:0.7rem;">无待审头像</p>';
+    document.getElementById('adminTitleList').innerHTML = (users||[]).filter(u=>u.title&&!u.title_approved).map(u=>`<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;"><span style="font-size:0.7rem;">${u.id}</span><span class="title-tag">${u.title}</span><button onclick="approveTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('')||'<p style="opacity:0.5;font-size:0.7rem;">无待审头衔</p>';
+    document.getElementById('adminUserList').innerHTML = (users||[]).sort((a,b)=>(counts[b.id]||0)-(counts[a.id]||0)).map(u=>`<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;font-size:0.7rem;"><span>${u.id}</span><span style="opacity:0.5;">发言${counts[u.id]||0}次</span><button onclick="setTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;">设头衔</button></div>`).join('');
 }
 
-async function loadAdminTitleList() {
-    const { data } = await ringDB.from('users').select('*').not('title', 'is', null).eq('title_approved', false);
-    document.getElementById('adminTitleList').innerHTML = (data||[]).length === 0 ? '<p style="opacity:0.5;">无待审头衔</p>' :
-        data.map(u => `<div style="display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0;"><span>${u.id}</span><span class="title-tag">${u.title}</span><button onclick="approveTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('');
-}
-
-async function loadAdminUserList() {
-    const { data: users } = await ringDB.from('users').select('*');
-    const { data: msgs } = await ringDB.from('messages').select('from');
-    const counts = {};
-    (msgs || []).forEach(m => { counts[m.from] = (counts[m.from] || 0) + 1; });
-    const sorted = (users || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
-    document.getElementById('adminUserList').innerHTML = sorted.map(u => `<div style="display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0;font-size:0.8rem;">
-        <span>${u.id}</span><span style="opacity:0.5;">发言${counts[u.id]||0}次</span><span class="title-tag">${u.title_approved?u.title:''}</span>
-        <button onclick="setTitle('${u.id}')" style="font-size:0.6rem;padding:2px 6px;">设头衔</button></div>`).join('');
-}
-
-window.approveAvatar = async (uid) => {
-    await ringDB.from('users').update({ avatar_approved: true }).eq('id', uid);
-    loadAdminAvatarList(); loadUsers();
-};
-
-window.rejectAvatar = async (uid) => {
-    await ringDB.from('users').update({ avatar: '', avatar_approved: false }).eq('id', uid);
-    loadAdminAvatarList(); loadUsers();
-};
-
-window.approveTitle = async (uid) => {
-    await ringDB.from('users').update({ title_approved: true }).eq('id', uid);
-    if (uid === currentUser.id) { currentUser.title_approved = true; updateCurrentUserDisplay(); }
-    loadAdminTitleList(); loadUsers();
-};
-
-window.rejectTitle = async (uid) => {
-    await ringDB.from('users').update({ title: '', title_approved: false }).eq('id', uid);
-    if (uid === currentUser.id) { currentUser.title = ''; currentUser.title_approved = false; updateCurrentUserDisplay(); }
-    loadAdminTitleList(); loadUsers();
-};
-
-window.setTitle = async (uid) => {
-    const t = prompt('输入头衔（需审核）：');
-    if (t === null) return;
-    await ringDB.from('users').update({ title: t, title_approved: false }).eq('id', uid);
-    if (uid === currentUser.id) { currentUser.title = t; currentUser.title_approved = false; updateCurrentUserDisplay(); }
-    loadAdminUserList(); loadUsers();
-};
-
-window.createPoll = async () => {
-    const q = prompt('投票问题：'); if (!q) return;
-    const opts = prompt('选项（逗号分隔）：'); if (!opts) return;
-    await ringDB.from('polls').insert({ question: q, options: JSON.stringify(opts.split(',').map(s => s.trim())), created_by: currentUser.id, timestamp: Date.now(), active: true });
-    await ringDB.from('polls').update({ active: false }).neq('id', 0);
-    const latest = await ringDB.from('polls').select('*').order('timestamp', { ascending: false }).limit(1);
-    if (latest.data?.[0]) await ringDB.from('polls').update({ active: true }).eq('id', latest.data[0].id);
-    alert('投票已发起');
-    loadPoll();
-};
-
-window.generateReport = async () => {
-    const { data: users } = await ringDB.from('users').select('*');
-    const { data: msgs } = await ringDB.from('messages').select('*');
-    const today = new Date(); today.setHours(0,0,0,0);
-    const newUsers = (users||[]).filter(u => u.last_active > today.getTime()).length;
-    const todayMsgs = (msgs||[]).filter(m => m.timestamp > today.getTime()).length;
-    alert(`📜 今日环城通告\n新增活跃成员：${newUsers}人\n今日消息数：${todayMsgs}条\n愿秩序之光，永远照耀环城。`);
-};
+window.approveAvatar = async (uid) => { await ringDB.from('users').update({avatar_approved:true}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.rejectAvatar = async (uid) => { await ringDB.from('users').update({avatar:'',avatar_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.approveTitle = async (uid) => { await ringDB.from('users').update({title_approved:true}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.rejectTitle = async (uid) => { await ringDB.from('users').update({title:'',title_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.setTitle = async (uid) => { const t=prompt('输入头衔（需审核）：'); if(t===null) return; await ringDB.from('users').update({title:t,title_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
 
 window.exportChat = async () => {
-    const { data } = await ringDB.from('messages').select('*').order('timestamp', { ascending: true });
-    const text = (data||[]).map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.from}: ${m.content}`).join('\n');
-    const blob = new Blob([text], { type: 'text/plain' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '环城通讯记录.txt'; a.click();
+    const { data } = await ringDB.from('messages').select('*').order('timestamp',{ascending:true});
+    const text = (data||[]).map(m=>`[${new Date(m.timestamp).toLocaleString()}] ${m.from}: ${m.content}`).join('\n');
+    const blob = new Blob([text],{type:'text/plain'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='环城通讯记录.txt'; a.click();
 };
 
 window.clearChat = async () => {
-    if (!confirm('确定清空所有聊天记录？')) return;
-    const { data } = await ringDB.from('messages').select('id');
-    if (data) for (const m of data) await ringDB.from('messages').delete().eq('id', m.id);
-    renderedMsgIds.clear();
-    lastMsgTimestamp = 0;
-    document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>';
+    if(!confirm('确定清空所有聊天记录？')) return;
+    const {data}=await ringDB.from('messages').select('id');
+    if(data) for(const m of data) await ringDB.from('messages').delete().eq('id',m.id);
+    renderedMsgIds.clear(); lastMsgTimestamp=0;
+    document.getElementById('chatMessages').innerHTML='<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>';
 };
 
-window.openThemePanel = () => {
-    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
-    const isAdmin = MODERATORS.includes(currentUser.id);
-    const available = isAdmin ? THEMES : THEMES.filter(t => (currentUser.unlocked_themes||[]).includes(t.id));
-    overlay.innerHTML = `<div class="modal-box"><h3>🎨 界面配置</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.5rem;">${available.map(t => {
-        const isCurrent = currentUser.theme === t.id;
-        return `<div style="padding:0.5rem;border-radius:0.5rem;cursor:pointer;text-align:center;border:2px solid ${isCurrent?'#e05050':'transparent'};background:rgba(255,255,255,0.05);" onclick="selectTheme('${t.id}')">${t.emoji}<br><span style="font-size:0.7rem;">${t.name}</span></div>`;
-    }).join('')}</div>
-    <div style="margin-top:0.5rem;"><b>上传头像：</b><input type="file" accept="image/*" onchange="uploadAvatar(this)"><span style="font-size:0.7rem;opacity:0.6;">需审核员批准</span></div>
-    ${isAdmin ? `<div style="margin-top:0.5rem;"><b>🎁 赠予主题：</b><input id="giftId" placeholder="对方ID"><select id="giftTheme">${THEMES.map(t=>`<option value="${t.id}">${t.name}</option>`).join('')}</select><button onclick="giftTheme()">赠送</button></div>` : ''}
-    <button onclick="this.closest('.modal-overlay').remove()" style="margin-top:0.5rem;background:#555;">关闭</button></div>`;
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
-};
-
-window.selectTheme = async (themeId) => {
-    if (!(currentUser.unlocked_themes||[]).includes(themeId) && !MODERATORS.includes(currentUser.id)) return;
-    await ringDB.from('users').update({ theme: themeId }).eq('id', currentUser.id);
-    currentUser.theme = themeId;
-    applyTheme(themeId);
-    document.querySelector('.modal-overlay')?.remove();
-};
-
-window.uploadAvatar = async (input) => {
-    const file = input.files[0];
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-        await ringDB.from('users').update({ avatar: e.target.result, avatar_approved: false }).eq('id', currentUser.id);
-        alert('✅ 头像已提交审核。');
-        loadUsers();
-    };
-    reader.readAsDataURL(file);
-};
-
-window.giftTheme = async () => {
-    const uid = document.getElementById('giftId').value.trim();
-    const tid = document.getElementById('giftTheme').value;
-    if (!uid) return alert('请输入对方ID');
-    const { data } = await ringDB.from('users').select('*').eq('id', uid);
-    if (!data || data.length === 0) return alert('用户不存在');
-    const themes = typeof data[0].unlocked_themes === 'string' ? JSON.parse(data[0].unlocked_themes) : (data[0].unlocked_themes || ['ringcity']);
-    if (themes.includes(tid)) return alert('对方已拥有该主题');
-    themes.push(tid);
-    await ringDB.from('users').update({ unlocked_themes: JSON.stringify(themes) }).eq('id', uid);
-    alert('✅ 已赠送主题');
-};
-
-document.getElementById('messageInput').addEventListener('keypress', e => { if (e.key==='Enter') sendMessage(); });
-document.getElementById('userSearch').addEventListener('input', loadUsers);
-document.getElementById('worldSearch').addEventListener('input', loadArchive);
+document.getElementById('messageInput').addEventListener('keypress',e=>{if(e.key==='Enter') sendMessage();});
+document.getElementById('userSearch').addEventListener('input',loadUsers);
+document.getElementById('worldSearch').addEventListener('input',loadArchive);
 </script>
 </body>
 </html>
