@@ -10,6 +10,7 @@
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             min-height:100vh; transition:background 0.4s;
+            background:#0f1217;
         }
         :root {
             --sidebar-width:270px; --msg-max-width:70%; --card-columns:repeat(auto-fill,minmax(280px,1fr));
@@ -29,18 +30,65 @@
             --other-msg-bg:rgba(44,46,62,0.8); --auth-card-bg:rgba(30,30,45,0.7);
             --sidebar-bg:rgba(18,20,30,0.6); --chat-layout-bg:rgba(22,24,35,0.7);
             --login-bg:rgba(20,20,30,0.7);
-            --button-gradient:linear-gradient(135deg,#8A5A5A,#6A4A4A);
         }
         .app-bg {
             position:fixed; top:0; left:0; width:100%; height:100%; z-index:-1;
             background:var(--bg-gradient); background-size:400% 400%;
             animation:bgShift 20s ease infinite;
         }
+        .app-bg::after {
+            content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+            pointer-events:none; z-index:0;
+            opacity:0.15;
+        }
+        /* 各主题几何图案 */
+        body.theme-swamp-witch .app-bg::after {
+            background-image: radial-gradient(circle at 15% 20%, #c9a050 1px, transparent 1px), radial-gradient(circle at 55% 65%, #c9a050 1.5px, transparent 1.5px), radial-gradient(circle at 85% 30%, #c9a050 1px, transparent 1px);
+            background-size: 90px 90px, 130px 130px, 110px 110px;
+        }
+        body.theme-brief-history .app-bg::after {
+            background: radial-gradient(circle at 80% 20%, transparent 70px, rgba(212,175,55,0.3) 70px, rgba(212,175,55,0.3) 72px, transparent 72px);
+            background-size: 250px 250px;
+        }
+        body.theme-ferryman .app-bg::after {
+            background-image: repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(200,150,90,0.2) 30px, rgba(200,150,90,0.2) 32px), repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(200,100,60,0.15) 60px, rgba(200,100,60,0.15) 62px);
+        }
+        body.theme-strawberry-sweet .app-bg::after {
+            background-image: radial-gradient(ellipse at 50% 40%, transparent 25%, rgba(236,64,122,0.3) 25%, rgba(236,64,122,0.3) 30%, transparent 30%);
+            background-size: 50px 50px; opacity:0.25;
+        }
+        body.theme-sunny-cloud .app-bg::after {
+            background-image: radial-gradient(circle at 25% 40%, rgba(255,255,255,0.5) 25px, transparent 25px), radial-gradient(circle at 65% 60%, rgba(255,255,255,0.4) 35px, transparent 35px);
+            background-size: 200px 200px, 250px 250px;
+        }
+        body.theme-rose-pink .app-bg::after {
+            background-image: linear-gradient(45deg, rgba(233,30,99,0.15) 1px, transparent 1px), linear-gradient(-45deg, rgba(233,30,99,0.15) 1px, transparent 1px);
+            background-size: 35px 35px;
+        }
+        body.theme-ritzlicht .app-bg::after {
+            background-image: radial-gradient(ellipse at 35% 55%, rgba(230,184,96,0.4) 2px, transparent 2px), radial-gradient(ellipse at 65% 25%, rgba(0,71,171,0.35) 2px, transparent 2px);
+            background-size: 70px 70px, 90px 90px;
+        }
+        body.theme-night-diner .app-bg::after {
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 35px, rgba(245,166,35,0.15) 35px, rgba(245,166,35,0.15) 37px);
+        }
+        body.theme-star-rail .app-bg::after {
+            background-image: radial-gradient(1px 1px at 30% 40%, rgba(192,208,224,0.6) 1px, transparent 1px), radial-gradient(1px 1px at 70% 60%, rgba(192,208,224,0.5) 1px, transparent 1px);
+            background-size: 100px 100px, 140px 140px;
+        }
+        body.theme-firefly-forest .app-bg::after {
+            background-image: radial-gradient(circle at 20% 35%, rgba(160,216,96,0.5) 2px, transparent 2px), radial-gradient(circle at 55% 70%, rgba(160,216,96,0.35) 3px, transparent 3px);
+            background-size: 80px 80px, 120px 120px;
+        }
+        body.theme-vintage-film .app-bg::after {
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(200,184,152,0.2) 15px, rgba(200,184,152,0.2) 17px);
+            background-size: 100% 18px;
+        }
         @keyframes bgShift { 0%,100%{background-position:0% 50%;} 50%{background-position:100% 50%;} }
         .app-container { max-width:1400px; margin:0 auto; padding:1rem; height:100vh; display:flex; flex-direction:column; position:relative; z-index:1; }
         .auth-card {
             max-width:420px; margin:auto; background:var(--login-bg); backdrop-filter:blur(25px);
-            border-radius:2rem; padding:2.5rem; box-shadow:0 20px 50px rgba(0,0,0,0.1); text-align:center;
+            border-radius:2rem; padding:2.5rem; box-shadow:0 20px 50px rgba(0,0,0,0.15); text-align:center;
             border:1px solid rgba(255,127,127,0.2);
         }
         .auth-card h2 { margin-bottom:0.5rem; font-weight:600; }
@@ -63,7 +111,7 @@
         .chat-layout {
             display:flex; gap:1rem; height:100%; background:var(--chat-layout-bg);
             backdrop-filter:blur(25px); border-radius:1.5rem; overflow:hidden;
-            box-shadow:0 10px 40px rgba(0,0,0,0.08);
+            box-shadow:0 10px 40px rgba(0,0,0,0.1);
         }
         .sidebar {
             width:var(--sidebar-width); background:var(--sidebar-bg); backdrop-filter:blur(15px);
@@ -98,11 +146,6 @@
         .header-btn:hover { background:rgba(0,0,0,0.05); transform:scale(1.1); }
         .review-badge { background:linear-gradient(135deg,#f59e0b,#e07000); color:white; padding:5px 12px; border-radius:2rem; font-size:0.75rem; cursor:pointer; font-weight:600; border:none; animation:pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.08);box-shadow:0 0 12px rgba(245,158,11,0.4);} }
-        .announce-bar {
-            background:rgba(255,200,100,0.2); border-bottom:1px solid rgba(255,180,60,0.3);
-            padding:0.5rem 1.5rem; font-size:0.8rem; color:var(--text-primary);
-            overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-        }
         .chat-messages { flex:1; overflow-y:auto; padding:1rem 1.5rem; display:flex; flex-direction:column; gap:0.8rem; }
         .message { display:flex; flex-direction:column; max-width:var(--msg-max-width); animation:slideIn 0.3s; }
         @keyframes slideIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
@@ -146,15 +189,12 @@
         .gift-section input, .gift-section select { padding:8px 12px; border-radius:2rem; border:2px solid #e8d5d0; background:rgba(255,255,255,0.5); font-size:0.85rem; outline:none; }
         .gift-section input { flex:1; min-width:100px; }
         .gift-section button { width:auto; padding:8px 16px; font-size:0.85rem; }
-        .review-drawer { position:fixed; top:0; right:-400px; width:380px; height:100%; background:var(--auth-card-bg); backdrop-filter:blur(30px); border-left:1px solid rgba(0,0,0,0.1); z-index:90; transition:right 0.4s; padding:1.5rem; overflow-y:auto; box-shadow:-10px 0 40px rgba(0,0,0,0.15); }
-        .review-drawer.open { right:0; }
-        body.view-mobile .review-drawer { top:auto; bottom:-100%; right:0; width:100%; height:65vh; border-radius:1.5rem 1.5rem 0 0; transition:bottom 0.4s; border-left:none; border-top:1px solid rgba(0,0,0,0.1); }
-        body.view-mobile .review-drawer.open { bottom:0; right:0; }
-        .review-drawer-backdrop { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.3); z-index:89; display:none; }
-        .review-drawer-backdrop.show { display:block; }
-        .review-item { display:flex; justify-content:space-between; align-items:center; padding:0.7rem; border-radius:1rem; margin-bottom:0.4rem; background:rgba(0,0,0,0.03); }
-        .review-item img { height:45px; border-radius:0.6rem; }
-        .review-item button { width:auto; padding:5px 12px; font-size:0.75rem; border-radius:1.5rem; }
+        .admin-panel-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(10px); z-index:120; display:flex; align-items:center; justify-content:center; }
+        .admin-panel { background:var(--auth-card-bg); backdrop-filter:blur(30px); border-radius:1.5rem; padding:2rem; max-width:700px; width:92%; max-height:85vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.3); }
+        .admin-panel h2 { margin-bottom:1rem; }
+        .admin-section { margin-bottom:1.5rem; padding:1rem; background:rgba(0,0,0,0.05); border-radius:1rem; }
+        body.dark .admin-section { background:rgba(255,255,255,0.05); }
+        .admin-section h3 { margin-bottom:0.5rem; font-size:1rem; }
         .footer-note { text-align:center; padding:0.4rem; font-size:0.65rem; color:var(--text-muted); opacity:0.4; }
         @media (max-width:768px) { .app-container { padding:0.5rem; } .chat-layout { border-radius:1rem; } .tab-btn { padding:0.7rem 0.8rem; font-size:0.85rem; } .auth-card { width:90%; padding:2rem; } }
     </style>
@@ -198,12 +238,12 @@
                     <button class="tab-btn" id="worldTabBtn">📖 档案</button>
                     <div class="header-right">
                         <button id="reviewBadge" class="review-badge" style="display:none;">📸 审核</button>
+                        <button id="adminPanelBtn" class="header-btn" style="display:none;">⚙️</button>
                         <button id="themePaletteBtn" class="header-btn">🎨</button>
                         <button id="viewModeBtn" class="header-btn">🖥️</button>
                         <button id="themeToggleBtn" class="header-btn">🌙</button>
                     </div>
                 </div>
-                <div id="announceBar" class="announce-bar" style="display:none;"></div>
                 <div id="chatPanel">
                     <div class="chat-messages" id="chatMessages"><p style="color:var(--text-muted);text-align:center;padding:2rem;">暂无消息，发一条吧</p></div>
                     <div class="input-area"><input type="text" id="messageInput" placeholder="输入消息..."><button id="sendMsgBtn">发送</button></div>
@@ -228,10 +268,23 @@
             <div style="text-align:center;margin-top:1rem;"><button style="width:auto;padding:8px 24px;font-size:0.9rem;" onclick="document.getElementById('themeSelectorOverlay').style.display='none'">关闭</button></div>
         </div>
     </div>
-    <div id="reviewDrawerBackdrop" class="review-drawer-backdrop" onclick="closeReviewDrawer()"></div>
-    <div id="reviewDrawer" class="review-drawer">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><h3>📸 待审核</h3><button style="width:auto;padding:6px 12px;font-size:0.8rem;" onclick="closeReviewDrawer()">✕</button></div>
-        <div id="reviewDrawerContent"><p style="color:var(--text-muted);">暂无待审图片。</p></div>
+    <div id="adminPanelOverlay" class="admin-panel-overlay" style="display:none;">
+        <div class="admin-panel">
+            <h2>⚙️ 审核员控制台</h2>
+            <div class="admin-section">
+                <h3>📸 图片审核</h3>
+                <div id="adminReviewContent"><p style="color:var(--text-muted);">加载中...</p></div>
+            </div>
+            <div class="admin-section">
+                <h3>💬 聊天记录管理</h3>
+                <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">当前消息数：<span id="adminMsgCount">0</span>（超200条自动清理最旧记录）</p>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                    <button onclick="adminSaveChat()" style="width:auto;padding:8px 16px;font-size:0.85rem;background:#10b981;">💾 导出记录</button>
+                    <button onclick="adminClearChat()" style="width:auto;padding:8px 16px;font-size:0.85rem;background:#ef4444;">🗑️ 清空记录</button>
+                </div>
+            </div>
+            <div style="text-align:center;margin-top:1rem;"><button style="width:auto;padding:8px 24px;font-size:0.9rem;" onclick="document.getElementById('adminPanelOverlay').style.display='none'">关闭</button></div>
+        </div>
     </div>
     <div class="footer-note">隙相·不归档·不保留·阅后即忘</div>
 </div>
@@ -241,6 +294,7 @@
     const SUPABASE_URL = 'https://fflngacqldvyzvhpolch.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmbG5nYWNxbGR2eXp2aHBvbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODQ3MTAsImV4cCI6MjA5NzQ2MDcxMH0.bkLyI6T4zNzClNlHqNO4O7wPu40Ep6xb2x5cUD0Hvgk';
     const ringDB = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+    const MAX_MESSAGES = 200;
 
     const MODERATORS = ["Danfilnak", "admin"];
     let currentUser = null, currentTheme = 'ringcity', unlockedThemes = ['ringcity'], viewMode = 'desktop', worldDataCache = null;
@@ -261,19 +315,19 @@
     ];
 
     const defaultWorld = [
-        { id:1, title:"环城区域划分", content:"环城从内到外依次为：天之柱（物理与精神坐标原点，700米巨柱，传说中建筑者居所）→神域（巫女居住的绝对禁区，任何人靠近直接击毙）→中坚都市/内环（长老会核心领地，缴纳巨额税金才能居住的“绝对安全”之地，人造天空永远晴朗）→高街区/中环（环三角核心领地，旧日动乱后重建的秩序样板）→外圈（普通公民居所）→暗巷（法律照耀不到的死角，“祝你能活过今天”是日常问候）→外界城（广袤死寂的废墟，拾荒者狩猎场）→里界（活着的、充满恶意的迷宫，里生物的源头）。地下有夜都，一座被官方地图抹去的巨大废墟都会，灰色地带的终极形态。", characters:["建筑者","巫女","万斯"], images:[] },
-        { id:2, title:"隙民 / 隙相", content:"活在环城规则缝隙中的族群。无固定身份，无身份章，擅长走私、偷渡、传话。官方通告中管他们叫“暗巷居民”——不具备公民资格，原则上没有申请内圈准入的资格。但他们不是被排斥的底层流民，而是主动选择游走在体系边缘的“规则玩家”。理事会私下称其为「隙相(Gap-phase)」，一个从物理学借来的词：存在在体系间隙里，没法定位，没法归类。代表人物：利希塔·瑞茨尔。", characters:["利希塔·瑞茨尔","弗里达·沃格尔"], images:[] },
-        { id:3, title:"环三角", content:"环城的执法利刃，各圈均有部署。对环三角成员必须给予最高规格的礼遇与服从。神域边界由万斯独自看守——他掌握空间切割能力，已正式死亡277次，每次都在观测盲区中重新浮现。", characters:["万斯"], images:[] },
-        { id:4, title:"徽旗派", content:"丽塔·多其米拉·尤尔特领导的组织，口号是消除阶级差异。内部团结参考太平天国模式。丽塔拥有「偷换概念」能力——能将语言中的定义替换，让人根本意识不到被换过。她的疯不是视生命如草芥，而是草芥和生命在她眼里一样，都视而不见。", characters:["丽塔·多其米拉·尤尔特"], images:[] },
-        { id:5, title:"城界禁令", content:"公民之活动范围，仅限环城之内。严禁以任何形式踏出环城半步。外界之城，乃污秽与虚无之地，勿存好奇。暗巷居民不具备公民资格。遵守规则，即是守护您的幸福。愿秩序之光，永远照耀环城。", characters:[], images:[] },
-        { id:6, title:"夜都", content:"环城地下的巨大废墟都会，官方地图上是一片空白。无数没有招牌的商店隐藏在阴影里，交易着环城禁止的一切——机密文件、黑科技、被篡改的记忆。隙民常在此接活。", characters:["无名店主","酒保"], images:[] },
-        { id:7, title:"拾荒者", content:"主要活动于外界城。生存信条：“能带走的，才是战利品；能活下来的，才是赢家。”在废墟中翻找旧时代的遗物——失传的黑晶科技、稀有资源。同行是最大的威胁。", characters:[], images:[] },
-        { id:8, title:"里生物", content:"来自里界的、违背自然法则的实体。形态极度扭曲，存在本身违背物理法则。少数能以接近人类的形态稳定存在——这便是古老神话与都市传说的原型。每一个里生物都拥有某种独一无二的特殊能力。", characters:[], images:[] },
-        { id:9, title:"暗巷猎人", content:"持证杀人的雇佣兵。不评判目标是否有罪，不关心委托人动机——只有“待处理的目标”和“到账的酬金”。内部森严的等级制度直接决定身价和能力。", characters:[], images:[] },
-        { id:10, title:"心剑组", content:"暗巷极恶势力，地下霸主。当家平真一郎，信条：唯才是举，以剑服人。内部云集各路剑术奇才。加入门槛看似很低——只需要是一名用剑好手，但潜台词是必须准备好随时拔剑杀人。", characters:["平真一郎"], images:[] },
-        { id:11, title:"清道夫", content:"所属机构：萨米孤儿院。成员是被遗弃的孤儿、遭受歧视的异类。萨米孤儿院不教融入社会，只教如何在黑暗中生存以及如何杀死敌人。加入门槛是环城最低也最令人心碎的——拥有一个悲惨的童年。", characters:[], images:[] },
-        { id:12, title:"迷途者", content:"自称“来自另一个世界”的人。衣着怪异，说着听不懂的术语。据说在柯迪亚克有一扇连接无数平行世界的大门。大多数迷途者一周内回到原本的世界，无人能追踪或捕捉他们。", characters:[], images:[] },
-        { id:13, title:"百足列车", content:"5人小队——艾（列车长，冷静，战力强）、暖爱（粉发，战场直播主）、帕斯卡（火箭发射器，疯癫）、浮士德（黑白双马尾，棒球棍近战）、莫莫（白发，防毒面具，战斧）。前往暗巷调查人口失踪案。", characters:["艾","暖爱","帕斯卡","浮士德","莫莫"], images:[] }
+        { id:1, title:"环城区域划分", content:"环城从内到外依次为：天之柱→神域→中坚都市/内环→高街区/中环→外圈→暗巷→外界城→里界。地下有夜都。", characters:["建筑者","巫女","万斯"], images:[] },
+        { id:2, title:"隙民 / 隙相", content:"活在环城规则缝隙中的族群。无固定身份，擅长走私、偷渡、传话。理事会私下称其为「隙相(Gap-phase)」。代表人物：利希塔·瑞茨尔。", characters:["利希塔·瑞茨尔","弗里达·沃格尔"], images:[] },
+        { id:3, title:"环三角", content:"环城的执法利刃，各圈均有部署。神域由万斯独自看守——空间切割能力，已正式死亡277次。", characters:["万斯"], images:[] },
+        { id:4, title:"徽旗派", content:"丽塔·多其米拉·尤尔特领导的组织，口号是消除阶级差异。丽塔拥有「偷换概念」能力。", characters:["丽塔·多其米拉·尤尔特"], images:[] },
+        { id:5, title:"城界禁令", content:"公民活动范围仅限环城之内。暗巷居民不具备公民资格。遵守规则，即是守护您的幸福。", characters:[], images:[] },
+        { id:6, title:"夜都", content:"环城地下的巨大废墟都会，没有招牌的店铺交易着环城禁止的一切。", characters:["无名店主","酒保"], images:[] },
+        { id:7, title:"拾荒者", content:"外界城的边缘人，翻找旧时代遗物。信条：能带走的才是战利品，能活下来的才是赢家。", characters:[], images:[] },
+        { id:8, title:"里生物", content:"来自里界的异常实体。少数能以接近人类的形态存在——神话传说的原型。", characters:[], images:[] },
+        { id:9, title:"暗巷猎人", content:"持证杀人的雇佣兵。只有待处理的目标和到账的酬金。", characters:[], images:[] },
+        { id:10, title:"心剑组", content:"暗巷地下霸主，当家平真一郎。唯才是举，以剑服人。", characters:["平真一郎"], images:[] },
+        { id:11, title:"清道夫", content:"萨米孤儿院培养的少年杀手。加入门槛：拥有一个悲惨的童年。", characters:[], images:[] },
+        { id:12, title:"迷途者", content:"自称来自另一个世界的人。柯迪亚克有一扇连接平行世界的大门。", characters:[], images:[] },
+        { id:13, title:"百足列车", content:"5人小队——艾、暖爱、帕斯卡、浮士德、莫莫。前往暗巷调查失踪案。", characters:["艾","暖爱","帕斯卡","浮士德","莫莫"], images:[] }
     ];
 
     function setViewMode(mode) { viewMode=mode; document.body.classList.toggle('view-mobile',mode==='mobile'); document.getElementById('viewModeBtn').innerText=mode==='mobile'?'📱':'🖥️'; if(currentUser) ringDB.from('users').update({view_mode:mode}).eq('id',currentUser.id); }
@@ -299,12 +353,13 @@
     }
 
     function applyTheme(themeId) {
-        currentTheme=themeId;
-        // 更新背景渐变
-        const theme=THEMES.find(t=>t.id===themeId);
-        if(theme){
-            document.querySelector('.app-bg').style.background=theme.swatch.replace('linear-gradient','').replace(/[()]/g,'');
-            document.querySelector('.app-bg').style.backgroundImage=theme.swatch;
+        document.body.className = document.body.className.replace(/theme-\S+/g, '').replace(/\s+/g, ' ').trim();
+        if (themeId !== 'ringcity') document.body.classList.add(`theme-${themeId}`);
+        currentTheme = themeId;
+        const theme = THEMES.find(t => t.id === themeId);
+        if (theme) {
+            document.querySelector('.app-bg').style.background = theme.swatch;
+            document.querySelector('.app-bg').style.backgroundSize = '400% 400%';
         }
     }
 
@@ -334,6 +389,15 @@
         ut.push(themeId); await ringDB.from('users').update({unlocked_themes:JSON.stringify(ut)}).eq('id',userId);
         alert(`✅ 已赠送「${THEMES.find(t=>t.id===themeId)?.name}」给 ${userId}`);
     };
+
+    async function trimMessages() {
+        const {data} = await ringDB.from('messages').select('id,timestamp').order('timestamp',{ascending:true});
+        if(!data||data.length<=MAX_MESSAGES) return;
+        const toDelete = data.slice(0, data.length - MAX_MESSAGES);
+        for (const msg of toDelete) {
+            await ringDB.from('messages').delete().eq('id', msg.id);
+        }
+    }
 
     async function loadMessages() {
         const {data}=await ringDB.from('messages').select('*').order('timestamp',{ascending:true});
@@ -394,18 +458,23 @@
     };
 
     async function updateReviewBadge(){
-        const badge=document.getElementById('reviewBadge'); if(!badge||!currentUser||!MODERATORS.includes(currentUser.id)){if(badge) badge.style.display='none'; return;}
+        const badge=document.getElementById('reviewBadge'); const adminBtn=document.getElementById('adminPanelBtn');
+        if(!currentUser||!MODERATORS.includes(currentUser.id)){if(badge) badge.style.display='none'; if(adminBtn) adminBtn.style.display='none'; return;}
+        if(adminBtn) adminBtn.style.display='inline-flex';
         const {data}=await ringDB.from('pending_images').select('*'); const count=(data||[]).length;
         badge.style.display=count>0?'inline-block':'none'; badge.innerText=`📸 审核(${count})`;
-        badge.onclick=toggleReviewDrawer;
+        badge.onclick=openAdminPanel;
     }
 
-    function openReviewDrawer(){document.getElementById('reviewDrawer').classList.add('open'); document.getElementById('reviewDrawerBackdrop').classList.add('show'); renderReviewContent();}
-    function closeReviewDrawer(){document.getElementById('reviewDrawer').classList.remove('open'); document.getElementById('reviewDrawerBackdrop').classList.remove('show');}
-    function toggleReviewDrawer(){const d=document.getElementById('reviewDrawer'); if(d.classList.contains('open')) closeReviewDrawer(); else openReviewDrawer();}
+    async function openAdminPanel(){
+        document.getElementById('adminPanelOverlay').style.display='flex';
+        await loadAdminReview();
+        await loadAdminMsgCount();
+    }
 
-    async function renderReviewContent(){
-        const container=document.getElementById('reviewDrawerContent'); const {data}=await ringDB.from('pending_images').select('*');
+    async function loadAdminReview(){
+        const container=document.getElementById('adminReviewContent');
+        const {data}=await ringDB.from('pending_images').select('*');
         if(!data||data.length===0){container.innerHTML='<p style="color:var(--text-muted);">暂无待审图片。</p>';return;}
         container.innerHTML='';
         data.forEach(item=>{
@@ -415,14 +484,38 @@
         });
     }
 
+    async function loadAdminMsgCount(){
+        const {data}=await ringDB.from('messages').select('id',{count:'exact',head:true});
+        document.getElementById('adminMsgCount').innerText = data ? (Array.isArray(data)?data.length:0) : 0;
+    }
+
     window.approveImage=async function(ts){
         const {data}=await ringDB.from('pending_images').select('*').eq('timestamp',ts); if(!data||data.length===0) return;
         const item=data[0]; const wd=await getWorld(); const target=wd.find(d=>d.id===item.itemId);
         if(target){target.images=target.images||[]; target.images.push(item.image); await saveWorld(wd);}
-        await ringDB.from('pending_images').delete().eq('timestamp',ts); renderReviewContent(); renderWorldCards(); updateReviewBadge();
+        await ringDB.from('pending_images').delete().eq('timestamp',ts);
+        loadAdminReview(); renderWorldCards(); updateReviewBadge();
     };
 
-    window.rejectImage=async function(ts){await ringDB.from('pending_images').delete().eq('timestamp',ts); renderReviewContent(); updateReviewBadge();};
+    window.rejectImage=async function(ts){
+        await ringDB.from('pending_images').delete().eq('timestamp',ts);
+        loadAdminReview(); updateReviewBadge();
+    };
+
+    window.adminSaveChat=async function(){
+        const {data}=await ringDB.from('messages').select('*').order('timestamp',{ascending:true});
+        if(!data||data.length===0) return alert('无聊天记录可保存');
+        const text = data.map(m=>`[${new Date(m.timestamp).toLocaleString()}] ${m.from}: ${m.content}`).join('\n');
+        const blob = new Blob([text],{type:'text/plain'});
+        const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='环城通讯记录.txt'; a.click();
+    };
+
+    window.adminClearChat=async function(){
+        if(!confirm('确定清空所有聊天记录？此操作不可恢复。')) return;
+        const {data}=await ringDB.from('messages').select('id');
+        if(data) for(const msg of data) await ringDB.from('messages').delete().eq('id',msg.id);
+        loadMessages(); loadAdminMsgCount(); alert('聊天记录已清空');
+    };
 
     window.addWorldItem=async function(){
         const title=prompt('条目标题：'),content=prompt('条目内容：'); if(!title||!content) return;
@@ -455,13 +548,6 @@
         });
     }
 
-    async function loadAnnouncement(){
-        const wd=await getWorld(); const announce=wd.find(i=>i.id===999);
-        const bar=document.getElementById('announceBar');
-        if(announce&&announce.content){bar.style.display='block'; bar.innerText='📢 '+announce.content;}
-        else bar.style.display='none';
-    }
-
     document.addEventListener('DOMContentLoaded',()=>{
         document.getElementById('showLoginBtn').onclick=()=>{document.getElementById('loginPanel').style.display='block';document.getElementById('registerPanel').style.display='none';};
         document.getElementById('showRegisterBtn').onclick=()=>{document.getElementById('loginPanel').style.display='none';document.getElementById('registerPanel').style.display='block';};
@@ -474,11 +560,17 @@
                 document.getElementById('currentUserName').innerText=id;
                 document.getElementById('chatTabBtn').classList.add('active'); document.getElementById('worldTabBtn').classList.remove('active');
                 document.getElementById('chatPanel').style.display='block'; document.getElementById('worldPanel').style.display='none';
-                applyTheme(currentTheme); listenMessages(); renderWorldCards(); renderUserList(); updateReviewBadge(); loadAnnouncement();
+                applyTheme(currentTheme); listenMessages(); renderWorldCards(); renderUserList(); updateReviewBadge();
                 document.getElementById('worldSearch').addEventListener('input',renderWorldCards);
-                document.getElementById('sendMsgBtn').onclick=async()=>{const inp=document.getElementById('messageInput'); if(!inp.value.trim()) return; await ringDB.from('messages').insert({from:currentUser.id,type:'text',content:inp.value.trim(),timestamp:Date.now()}); inp.value='';};
+                document.getElementById('sendMsgBtn').onclick=async()=>{
+                    const inp=document.getElementById('messageInput'); if(!inp.value.trim()) return;
+                    await ringDB.from('messages').insert({from:currentUser.id,type:'text',content:inp.value.trim(),timestamp:Date.now()});
+                    inp.value=''; trimMessages();
+                };
                 document.getElementById('messageInput').addEventListener('keypress',e=>{if(e.key==='Enter') document.getElementById('sendMsgBtn').click();});
                 document.getElementById('searchUserInput').addEventListener('input',renderUserList);
+                document.getElementById('adminPanelBtn').onclick=openAdminPanel;
+                document.getElementById('adminPanelOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('adminPanelOverlay')) document.getElementById('adminPanelOverlay').style.display='none';});
                 setInterval(async()=>{if(currentUser) await ringDB.from('users').update({last_active:Date.now()}).eq('id',currentUser.id);},120000);
             }else document.getElementById('loginError').innerText=res.msg;
         };
@@ -494,7 +586,7 @@
         document.addEventListener('click',function(e){if(currentTheme!=='ritzlicht') return; const paw=document.createElement('div'); paw.style.cssText=`position:fixed;left:${e.clientX-8}px;top:${e.clientY-8}px;width:16px;height:16px;pointer-events:none;z-index:9999;font-size:16px;animation:pawFade 0.8s ease forwards;color:${Math.random()>0.5?'#0047ab':'#d4a843'};`; paw.innerText='ฅ'; document.body.appendChild(paw); setTimeout(()=>paw.remove(),800);});
         const pawStyle=document.createElement('style'); pawStyle.textContent='@keyframes pawFade{0%{transform:scale(0.5);opacity:1;}50%{transform:scale(1.4);opacity:0.7;}100%{transform:scale(1.8);opacity:0;}}'; document.head.appendChild(pawStyle);
         const lastUser=localStorage.getItem('lastUser');
-        if(lastUser){login(lastUser,'').then(res=>{if(!res.success){localStorage.removeItem('lastUser');return;} currentUser={id:lastUser}; document.getElementById('authView').style.display='none'; document.getElementById('chatView').style.display='flex'; document.getElementById('currentUserName').innerText=lastUser; applyTheme(currentTheme); listenMessages(); renderWorldCards(); renderUserList(); updateReviewBadge(); loadAnnouncement(); document.getElementById('worldSearch').addEventListener('input',renderWorldCards); document.getElementById('sendMsgBtn').onclick=async()=>{const inp=document.getElementById('messageInput');if(!inp.value.trim()) return; await ringDB.from('messages').insert({from:currentUser.id,type:'text',content:inp.value.trim(),timestamp:Date.now()});inp.value='';}; document.getElementById('messageInput').addEventListener('keypress',e=>{if(e.key==='Enter') document.getElementById('sendMsgBtn').click();}); document.getElementById('searchUserInput').addEventListener('input',renderUserList); setInterval(async()=>{if(currentUser) await ringDB.from('users').update({last_active:Date.now()}).eq('id',currentUser.id);},120000);});}
+        if(lastUser){login(lastUser,'').then(res=>{if(!res.success){localStorage.removeItem('lastUser');return;} currentUser={id:lastUser}; document.getElementById('authView').style.display='none'; document.getElementById('chatView').style.display='flex'; document.getElementById('currentUserName').innerText=lastUser; applyTheme(currentTheme); listenMessages(); renderWorldCards(); renderUserList(); updateReviewBadge(); document.getElementById('worldSearch').addEventListener('input',renderWorldCards); document.getElementById('sendMsgBtn').onclick=async()=>{const inp=document.getElementById('messageInput');if(!inp.value.trim()) return; await ringDB.from('messages').insert({from:currentUser.id,type:'text',content:inp.value.trim(),timestamp:Date.now()});inp.value='';trimMessages();}; document.getElementById('messageInput').addEventListener('keypress',e=>{if(e.key==='Enter') document.getElementById('sendMsgBtn').click();}); document.getElementById('searchUserInput').addEventListener('input',renderUserList); document.getElementById('adminPanelBtn').onclick=openAdminPanel; document.getElementById('adminPanelOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('adminPanelOverlay')) document.getElementById('adminPanelOverlay').style.display='none';}); setInterval(async()=>{if(currentUser) await ringDB.from('users').update({last_active:Date.now()}).eq('id',currentUser.id);},120000);});}
     });
 </script>
 </body>
