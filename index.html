@@ -2,65 +2,520 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>环城 · 社团聊天室</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>环城 · 社团聊天室 & 资料库</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 2rem; border-radius: 1rem; width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; }
-        button { width: 100%; padding: 12px; margin: 5px 0; border: none; border-radius: 8px; background: #FF7F7F; color: white; font-weight: bold; cursor: pointer; }
-        .msg { margin-top: 1rem; font-size: 0.9rem; }
-        .error { color: #ef4444; }
-        .success { color: #10b981; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            transition: background 0.4s ease;
+            background: #f0f2f5;
+        }
+        body.dark { background: #0f1217; }
+
+        /* 视图模式变量 */
+        :root {
+            --sidebar-width: 270px;
+            --msg-max-width: 70%;
+            --card-columns: repeat(auto-fill, minmax(280px, 1fr));
+            --drawer-position: right;
+            --drawer-size: 400px;
+            --drawer-transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* 手机视图 */
+        body.view-mobile {
+            --sidebar-width: 0px;
+            --msg-max-width: 90%;
+            --card-columns: 1fr;
+            --drawer-position: bottom;
+            --drawer-size: 70vh;
+            --drawer-transition: bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #FF7F7F 0%, #e8a87c 20%, #c9b08c 40%, #a3b08b 60%, #8A9A5B 80%, #7a9a4e 100%);
+            --card-bg: rgba(255,255,255,0.85);
+            --text-primary: #1e293b;
+            --text-muted: #8899a6;
+            --button-gradient: linear-gradient(135deg, #FF7F7F, #e8906c);
+            --input-focus: #FF7F7F;
+            --self-msg-bg: linear-gradient(135deg, #FF7F7F, #e8906c);
+            --other-msg-bg: rgba(228,230,235,0.8);
+            --auth-card-bg: rgba(255,255,255,0.9);
+            --sidebar-bg: rgba(250,252,255,0.6);
+            --chat-layout-bg: rgba(255,255,255,0.7);
+        }
+        body.dark {
+            --card-bg: rgba(25,28,38,0.85);
+            --text-primary: #eef;
+            --text-muted: #94a3b8;
+            --other-msg-bg: rgba(44,46,62,0.8);
+            --auth-card-bg: rgba(30,30,45,0.9);
+            --sidebar-bg: rgba(18,20,30,0.7);
+            --chat-layout-bg: rgba(22,24,35,0.8);
+        }
+
+        .app-container {
+            max-width: 1400px; margin: 0 auto; padding: 1rem;
+            height: 100vh; display: flex; flex-direction: column;
+        }
+
+        .auth-card {
+            max-width: 420px; margin: auto;
+            background: var(--auth-card-bg); backdrop-filter: blur(20px);
+            border-radius: 2rem; padding: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center;
+            border: 1px solid rgba(255,127,127,0.3);
+        }
+        body.view-mobile .auth-card { width: 90%; padding: 2rem; }
+        .auth-card h2 { margin-bottom: 0.5rem; font-weight: 600; }
+        .auth-subtitle { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .input-group { margin: 1rem 0; }
+        .input-group input {
+            width: 100%; padding: 14px 18px; border-radius: 3rem;
+            border: 2px solid #e8d5d0; background: rgba(255,255,255,0.8);
+            font-size: 1rem; outline: none; transition: all 0.3s ease;
+        }
+        .input-group input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 3px rgba(255,127,127,0.15); }
+        body.dark .input-group input { background: rgba(40,42,55,0.8); border-color: #3a4a35; color: white; }
+        button {
+            background: var(--button-gradient); color: white; border: none;
+            padding: 14px 24px; border-radius: 3rem; font-weight: 600;
+            cursor: pointer; width: 100%; font-size: 1rem; transition: all 0.3s ease;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+        .switch-auth { margin-top: 1rem; font-size: 0.85rem; color: var(--input-focus); cursor: pointer; }
+        .error { color: #ef4444; font-size: 0.8rem; margin-top: 0.5rem; }
+
+        .chat-layout {
+            display: flex; gap: 1rem; height: 100%;
+            background: var(--chat-layout-bg); backdrop-filter: blur(25px);
+            border-radius: 1.5rem; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        }
+        .sidebar {
+            width: var(--sidebar-width); background: var(--sidebar-bg); backdrop-filter: blur(15px);
+            display: flex; flex-direction: column; border-right: 1px solid rgba(0,0,0,0.06);
+            transition: width 0.3s ease; overflow: hidden;
+        }
+        body.view-mobile .sidebar { width: 0; border-right: none; padding: 0; }
+        .sidebar-header { padding: 1.3rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .sidebar-header h3 { margin-bottom: 0.6rem; font-weight: 600; }
+        .search-box {
+            width: 100%; padding: 10px 14px; border-radius: 2rem;
+            border: 2px solid #e8d5d0; background: rgba(255,255,255,0.7); outline: none;
+        }
+        .user-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
+        .user-item {
+            padding: 0.7rem 1rem; border-radius: 1rem; margin-bottom: 0.3rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .current-user-bar {
+            padding: 1rem; border-top: 1px solid rgba(0,0,0,0.06);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .main-area { flex: 1; display: flex; flex-direction: column; }
+        .top-bar {
+            display: flex; border-bottom: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.4); backdrop-filter: blur(10px);
+        }
+        .tab-btn {
+            padding: 1rem 2rem; cursor: pointer; border: none; background: none;
+            font-size: 1rem; font-weight: 500; color: var(--text-muted);
+        }
+        .tab-btn.active { color: var(--input-focus); font-weight: 600; }
+        .header-right { margin-left: auto; display: flex; align-items: center; padding-right: 1rem; gap: 0.5rem; }
+        .header-btn {
+            background: none; width: 40px; height: 40px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; border: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .header-btn:hover { background: rgba(0,0,0,0.05); }
+
+        .chat-messages { flex:1; overflow-y:auto; padding:1.5rem; display:flex; flex-direction:column; gap:1rem; }
+        .message { display:flex; flex-direction:column; max-width: var(--msg-max-width); }
+        .message.self { align-self:flex-end; }
+        .message.other { align-self:flex-start; }
+        .message-info { font-size:0.7rem; margin-bottom:0.3rem; opacity:0.7; }
+        .message-bubble {
+            background: var(--other-msg-bg); backdrop-filter: blur(10px);
+            padding: 0.7rem 1.1rem; border-radius: 1.3rem; word-wrap: break-word;
+        }
+        .message.self .message-bubble { background: var(--self-msg-bg); color: white; }
+        .message-image { max-width:200px; max-height:200px; border-radius:1rem; cursor:pointer; }
+
+        .input-area { padding:1rem 1.5rem; border-top:1px solid rgba(0,0,0,0.06); display:flex; gap:0.5rem; }
+        .input-area input {
+            flex:1; padding:14px 18px; border-radius:3rem;
+            border:2px solid #e8d5d0; background:rgba(255,255,255,0.8); font-size:0.95rem; outline:none;
+        }
+        .input-area input:focus { border-color:var(--input-focus); }
+        .input-area button { width:auto; padding:0 1.8rem; }
+
+        .world-view {
+            flex:1; overflow-y:auto; padding:1.5rem;
+            background: var(--bg-gradient); display:flex; flex-direction:column; gap:1rem;
+        }
+        .world-search {
+            padding:14px 20px; border-radius:3rem; border:2px solid rgba(255,255,255,0.4);
+            background:rgba(255,255,255,0.85); font-size:1rem; outline:none; width:100%;
+        }
+        .world-cards { display:grid; grid-template-columns: var(--card-columns); gap:1rem; }
+        .world-card {
+            background: var(--card-bg); backdrop-filter:blur(15px);
+            border-radius:1.5rem; padding:1.5rem; cursor:pointer;
+            box-shadow:0 4px 15px rgba(0,0,0,0.06); transition:all 0.3s ease;
+        }
+        .world-card:hover { transform:translateY(-4px); box-shadow:0 10px 25px rgba(0,0,0,0.1); }
+        .world-card h3 { color:var(--text-primary); font-weight:600; margin-bottom:0.5rem; }
+        .world-card p { color:var(--text-muted); line-height:1.5; }
+
+        .modal-overlay {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
+            display:flex; align-items:center; justify-content:center; z-index:100;
+        }
+        .modal-content {
+            background:rgba(255,255,255,0.95); backdrop-filter:blur(25px);
+            border-radius:2rem; padding:2.5rem; max-width:650px; width:92%;
+            max-height:82vh; overflow-y:auto; position:relative;
+        }
+        body.dark .modal-content { background:rgba(22,24,35,0.95); color:#eef; }
+        body.view-mobile .modal-content { max-width:100%; width:100%; border-radius:1.5rem 1.5rem 0 0; position:fixed; bottom:0; left:0; max-height:90vh; }
+        .modal-close {
+            position:absolute; top:1rem; right:1rem;
+            background:rgba(0,0,0,0.06); border:none; border-radius:50%;
+            width:36px; height:36px; cursor:pointer; font-size:1.2rem;
+        }
+
+        .theme-selector-overlay {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.6); backdrop-filter:blur(10px);
+            z-index:110; display:flex; align-items:center; justify-content:center;
+        }
+        .theme-selector {
+            background: var(--auth-card-bg); border-radius:2rem; padding:2rem;
+            max-width:700px; width:90%; max-height:80vh; overflow-y:auto;
+        }
+        .theme-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:1rem; }
+        .theme-preview {
+            border-radius:1.2rem; padding:0.8rem; cursor:pointer; text-align:center;
+            border:2px solid transparent; transition:all 0.3s ease;
+        }
+        .theme-preview:hover { transform:translateY(-3px); }
+        .theme-preview.selected { border-color:var(--input-focus); }
+        .theme-preview.locked { opacity:0.5; cursor:not-allowed; }
+        .theme-preview .preview-swatch { width:100%; height:60px; border-radius:0.8rem; margin-bottom:0.5rem; }
+        .gift-section { margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid rgba(0,0,0,0.1); display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+        .gift-section input, .gift-section select { padding:10px 14px; border-radius:2rem; border:2px solid #e8d5d0; background:rgba(255,255,255,0.8); font-size:0.9rem; outline:none; }
+        .gift-section input { flex:1; min-width:120px; }
+        .gift-section button { width:auto; padding:10px 20px; }
     </style>
 </head>
 <body>
-<div class="box">
-    <h2>🏛️ 环城连接测试</h2>
-    <input type="text" id="userId" placeholder="输入ID">
-    <input type="password" id="userPwd" placeholder="输入密码">
-    <button onclick="doRegister()">注册</button>
-    <button onclick="doLogin()">登录</button>
-    <div id="msg" class="msg"></div>
+<div id="app">
+    <div id="authView" class="app-container" style="justify-content:center;">
+        <div class="auth-card">
+            <h2>🏛️ 环城社团聊天室</h2>
+            <p class="auth-subtitle">秩序之光，永远照耀环城</p>
+            <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:1rem;">
+                <span id="showLoginBtn" style="cursor:pointer;font-weight:bold;padding:8px 16px;border-radius:2rem;background:rgba(255,127,127,0.1);">登录</span>
+                <span id="showRegisterBtn" style="cursor:pointer;padding:8px 16px;">注册</span>
+            </div>
+            <div id="loginPanel">
+                <div class="input-group"><input type="text" id="loginId" placeholder="ID" autocomplete="off"></div>
+                <div class="input-group"><input type="password" id="loginPwd" placeholder="密码"></div>
+                <button id="doLoginBtn">登录</button>
+                <div id="loginError" class="error"></div>
+            </div>
+            <div id="registerPanel" style="display:none;">
+                <div class="input-group"><input type="text" id="regId" placeholder="ID (字母数字下划线)" autocomplete="off"></div>
+                <div class="input-group"><input type="password" id="regPwd" placeholder="密码"></div>
+                <button id="doRegisterBtn">注册</button>
+                <div id="regError" class="error"></div>
+            </div>
+            <div class="switch-auth" id="switchToRegister">没有账号？立即注册</div>
+        </div>
+    </div>
+
+    <div id="chatView" class="app-container" style="display:none;">
+        <div class="chat-layout">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3>👥 社团成员</h3>
+                    <input type="text" id="searchUserInput" class="search-box" placeholder="搜索成员...">
+                </div>
+                <div class="user-list" id="userList"></div>
+                <div class="current-user-bar">
+                    <span id="currentUserName"></span>
+                    <button id="logoutBtn" style="width:auto;padding:8px 16px;font-size:0.8rem;">登出</button>
+                </div>
+            </div>
+            <div class="main-area">
+                <div class="top-bar">
+                    <button class="tab-btn active" id="chatTabBtn">💬 聊天</button>
+                    <button class="tab-btn" id="worldTabBtn">📖 资料库</button>
+                    <div class="header-right">
+                        <button id="viewModeBtn" class="header-btn" title="切换视图">🖥️</button>
+                        <button id="themePaletteBtn" class="header-btn">🎨</button>
+                        <button id="themeToggleBtn" class="header-btn">🌙</button>
+                    </div>
+                </div>
+                <div id="chatPanel">
+                    <div class="chat-messages" id="chatMessages"></div>
+                    <div class="input-area">
+                        <input type="text" id="messageInput" placeholder="输入消息...">
+                        <button id="sendMsgBtn">发送</button>
+                    </div>
+                </div>
+                <div id="worldPanel" style="display:none;flex:1;flex-direction:column;">
+                    <div class="world-view" id="worldViewContainer">
+                        <input type="text" id="worldSearch" class="world-search" placeholder="🔍 搜索条目或人物...">
+                        <div class="world-cards" id="worldCards"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="themeSelectorOverlay" class="theme-selector-overlay" style="display:none;">
+        <div class="theme-selector">
+            <h2>🎨 选择主题</h2>
+            <div class="theme-grid" id="themeGrid"></div>
+            <div id="giftSection" class="gift-section" style="display:none;">
+                <span>🎁 赠予主题：</span>
+                <input type="text" id="giftUserId" placeholder="对方ID">
+                <select id="giftThemeSelect"></select>
+                <button onclick="giftTheme()">赠送</button>
+            </div>
+            <div style="text-align:center;margin-top:1rem;">
+                <button style="width:auto;padding:10px 30px;" onclick="document.getElementById('themeSelectorOverlay').style.display='none'">关闭</button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
+<script>
+(function() {
     const SUPABASE_URL = 'https://fflngacqldvyzvhpolch.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmbG5nYWNxbGR2eXp2aHBvbGNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4ODQ3MTAsImV4cCI6MjA5NzQ2MDcxMH0.bkLyI6T4zNzClNlHqNO4O7wPu40Ep6xb2x5cUD0Hvgk';
-    
-    const ringDB = createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { persistSession: false }
-    });
+    const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    window.doRegister = async function() {
-        const id = document.getElementById('userId').value.trim();
-        const pwd = document.getElementById('userPwd').value;
-        if (!id || !pwd) return show('请填写ID和密码', true);
-        const { error } = await ringDB.from('users').insert({ id, pwd, theme:'ringcity', unlocked_themes:'["ringcity"]', view_mode:'desktop' });
-        if (error) {
-            if (error.message.includes('duplicate')) return show('ID已存在', true);
-            return show('注册失败: ' + error.message, true);
+    const MODERATORS = ["Danfilnak", "admin"];
+    let currentUser = null;
+    let currentTheme = 'ringcity';
+    let unlockedThemes = ['ringcity'];
+    let viewMode = 'desktop'; // 'desktop' 或 'mobile'
+
+    const THEMES = [
+        { id:'ringcity', name:'环城珊瑚', emoji:'🏛️', swatch:'linear-gradient(135deg,#FF7F7F,#8A9A5B)', locked:false },
+        { id:'swamp-witch', name:'沼泽巫女', emoji:'🔮', swatch:'linear-gradient(135deg,#1a0a2e,#c9a050)', locked:true },
+        { id:'brief-history', name:'时间简史', emoji:'⌛', swatch:'linear-gradient(180deg,#000,#fff)', locked:true },
+        { id:'ferryman', name:'摆渡巫师', emoji:'⛩️', swatch:'linear-gradient(135deg,#e8734a,#1a3c2a)', locked:true },
+        { id:'strawberry-sweet', name:'草莓甜心', emoji:'❤', swatch:'linear-gradient(135deg,#fce4ec,#f48fb1)', locked:true },
+        { id:'sunny-cloud', name:'晴天初云', emoji:'☁️', swatch:'linear-gradient(180deg,#bbdefb,#fff)', locked:true },
+        { id:'rose-pink', name:'玫粉主题', emoji:'🌸', swatch:'linear-gradient(135deg,#e91e63,#f48fb1)', locked:true },
+        { id:'ritzlicht', name:'瑞茨尔专属', emoji:'🐱', swatch:'linear-gradient(135deg,#e3f2fd,#d4a843)', locked:true },
+        { id:'night-diner', name:'深夜食堂', emoji:'🍜', swatch:'linear-gradient(180deg,#1a2233,#f5a623)', locked:true },
+        { id:'star-rail', name:'星穹铁道', emoji:'🌌', swatch:'linear-gradient(180deg,#0a0a2e,#1e3a5f)', locked:true },
+        { id:'firefly-forest', name:'萤火之森', emoji:'🌿', swatch:'linear-gradient(180deg,#0a1a0a,#1a4a1a)', locked:true },
+        { id:'vintage-film', name:'旧日胶片', emoji:'📷', swatch:'linear-gradient(180deg,#3a2a1a,#c8b898)', locked:true }
+    ];
+
+    const defaultWorld = [
+        { id:1, title:"环城区域划分", content:"环城从内到外：天之柱→神域→中坚都市(内环)→高街区(中环)→外圈→暗巷→外界城→里界。地下有夜都，是灰色地带的终极形态。", characters:["建筑者","巫女","万斯"], images:[] },
+        { id:2, title:"隙民 / 隙相", content:"活在环城规则缝隙中的族群。无固定身份，擅长走私、偷渡、传话。官方私下称其为「隙相(Gap-phase)」。代表人物：利希塔·瑞茨尔。", characters:["利希塔·瑞茨尔","弗里达·沃格尔"], images:[] },
+        { id:3, title:"环三角", content:"环城的执法利刃，各圈均有部署。对环三角不敬或妨碍公务将受严厉制裁。神域由万斯独自看守。", characters:["万斯"], images:[] },
+        { id:4, title:"徽旗派(Emblem Flag)", content:"丽塔·多其米拉·尤尔特领导的组织，口号是消除阶级差异。内部团结参考太平天国模式。丽塔拥有「偷换概念」能力。", characters:["丽塔·多其米拉·尤尔特"], images:[] },
+        { id:5, title:"城界禁令", content:"公民活动范围仅限环城之内。严禁踏出环城半步。外界之城乃污秽与虚无之地，勿存好奇。", characters:[], images:[] },
+        { id:6, title:"夜都", content:"环城地下的巨大废墟都会，没有招牌的店铺交易着环城禁止的一切——机密文件、黑科技、被篡改的记忆。隙民常在此接活。", characters:["无名店主","酒保"], images:[] }
+    ];
+
+    // 视图模式切换
+    function setViewMode(mode) {
+        viewMode = mode;
+        if (mode === 'mobile') {
+            document.body.classList.add('view-mobile');
+            document.getElementById('viewModeBtn').innerText = '📱';
+        } else {
+            document.body.classList.remove('view-mobile');
+            document.getElementById('viewModeBtn').innerText = '🖥️';
         }
-        show('✅ 注册成功！现在可以登录了', false);
-    };
-
-    window.doLogin = async function() {
-        const id = document.getElementById('userId').value.trim();
-        const pwd = document.getElementById('userPwd').value;
-        if (!id || !pwd) return show('请填写ID和密码', true);
-        const { data, error } = await ringDB.from('users').select('*').eq('id', id).eq('pwd', pwd);
-        if (error) return show('登录失败: ' + error.message, true);
-        if (!data || data.length === 0) return show('ID或密码错误', true);
-        show('🎉 登录成功！欢迎回来，' + data[0].id, false);
-    };
-
-    function show(msgText, isError) {
-        const m = document.getElementById('msg');
-        m.innerText = msgText;
-        m.className = 'msg ' + (isError ? 'error' : 'success');
+        if (currentUser) {
+            _supabase.from('users').update({ view_mode: mode }).eq('id', currentUser.id);
+        }
     }
+
+    async function register(id, pwd) {
+        if (!/^[a-zA-Z0-9_]+$/.test(id)) return { success:false, msg:"ID只能字母数字下划线" };
+        const { data } = await _supabase.from('users').select('id').eq('id', id);
+        if (data && data.length > 0) return { success:false, msg:"ID已存在" };
+        await _supabase.from('users').insert({ id, pwd, theme:'ringcity', unlocked_themes:['ringcity'], view_mode:'desktop' });
+        return { success:true };
+    }
+
+    async function login(id, pwd) {
+        const { data } = await _supabase.from('users').select('*').eq('id', id).eq('pwd', pwd);
+        if (!data || data.length === 0) return { success:false, msg:"ID或密码错误" };
+        currentTheme = data[0].theme || 'ringcity';
+        unlockedThemes = data[0].unlocked_themes || ['ringcity'];
+        viewMode = data[0].view_mode || 'desktop';
+        setViewMode(viewMode);
+        return { success:true };
+    }
+
+    function openThemeSelector() {
+        document.getElementById('themeSelectorOverlay').style.display = 'flex';
+        const grid = document.getElementById('themeGrid');
+        grid.innerHTML = '';
+        THEMES.forEach(theme => {
+            const isUnlocked = unlockedThemes.includes(theme.id);
+            const div = document.createElement('div');
+            div.className = `theme-preview ${currentTheme===theme.id?'selected':''} ${!isUnlocked?'locked':''}`;
+            div.innerHTML = `<div class="preview-swatch" style="background:${theme.swatch};"></div><div class="preview-name">${theme.emoji} ${theme.name}</div>${!isUnlocked?'<div style="font-size:0.7rem;">🔒</div>':''}`;
+            if (isUnlocked) div.onclick = async () => { currentTheme = theme.id; await _supabase.from('users').update({ theme:theme.id }).eq('id', currentUser.id); openThemeSelector(); };
+            grid.appendChild(div);
+        });
+        const giftSection = document.getElementById('giftSection');
+        giftSection.style.display = (currentUser && MODERATORS.includes(currentUser.id)) ? 'flex' : 'none';
+        const giftSelect = document.getElementById('giftThemeSelect');
+        giftSelect.innerHTML = THEMES.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+    }
+
+    window.giftTheme = async function() {
+        const userId = document.getElementById('giftUserId').value.trim();
+        const themeId = document.getElementById('giftThemeSelect').value;
+        if (!userId) return alert('请输入对方ID');
+        const { data } = await _supabase.from('users').select('*').eq('id', userId);
+        if (!data || data.length === 0) return alert('用户不存在');
+        const themes = data[0].unlocked_themes || ['ringcity'];
+        if (themes.includes(themeId)) return alert('对方已拥有该主题');
+        themes.push(themeId);
+        await _supabase.from('users').update({ unlocked_themes: themes }).eq('id', userId);
+        alert(`✅ 已赠送「${THEMES.find(t=>t.id===themeId)?.name}」给 ${userId}`);
+    };
+
+    async function loadMessages() {
+        const { data } = await _supabase.from('messages').select('*').order('timestamp', { ascending:true });
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+        container.innerHTML = '';
+        (data||[]).forEach(msg => {
+            const div = document.createElement('div');
+            div.className = `message ${currentUser&&msg.from===currentUser.id?'self':'other'}`;
+            div.innerHTML = `<div class="message-info"><span>${msg.from}</span> <span>${new Date(msg.timestamp).toLocaleTimeString()}</span></div><div class="message-bubble">${msg.content}</div>`;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function listenMessages() {
+        _supabase.channel('msgs').on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, loadMessages).subscribe();
+        loadMessages();
+    }
+
+    async function renderWorldCards() {
+        const { data } = await _supabase.from('world').select('data').eq('id',1).single();
+        const worldData = data ? data.data : defaultWorld;
+        const kw = (document.getElementById('worldSearch')?.value||'').toLowerCase();
+        const filtered = worldData.filter(i => i.title.toLowerCase().includes(kw) || i.content.toLowerCase().includes(kw));
+        const container = document.getElementById('worldCards');
+        if (!container) return;
+        container.innerHTML = '';
+        filtered.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'world-card';
+            card.onclick = () => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `<div class="modal-content"><button class="modal-close">✕</button><h2>${item.title}</h2><p style="margin-top:1rem;line-height:1.8;">${item.content}</p></div>`;
+                overlay.querySelector('.modal-close').onclick = () => overlay.remove();
+                overlay.addEventListener('click', e => { if (e.target===overlay) overlay.remove(); });
+                document.body.appendChild(overlay);
+            };
+            card.innerHTML = `<h3>📄 ${item.title}</h3><p>${item.content}</p>`;
+            container.appendChild(card);
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('showLoginBtn').onclick = () => { document.getElementById('loginPanel').style.display='block'; document.getElementById('registerPanel').style.display='none'; };
+        document.getElementById('showRegisterBtn').onclick = () => { document.getElementById('loginPanel').style.display='none'; document.getElementById('registerPanel').style.display='block'; };
+        document.getElementById('switchToRegister').onclick = () => { document.getElementById('loginPanel').style.display='none'; document.getElementById('registerPanel').style.display='block'; };
+        document.getElementById('doLoginBtn').onclick = async () => {
+            const id = document.getElementById('loginId').value.trim();
+            const pwd = document.getElementById('loginPwd').value;
+            const res = await login(id, pwd);
+            if (res.success) {
+                currentUser = { id };
+                localStorage.setItem('lastUser', id);
+                document.getElementById('authView').style.display = 'none';
+                document.getElementById('chatView').style.display = 'flex';
+                document.getElementById('currentUserName').innerText = id;
+                listenMessages();
+                renderWorldCards();
+                document.getElementById('worldSearch').addEventListener('input', renderWorldCards);
+                document.getElementById('sendMsgBtn').onclick = async () => {
+                    const input = document.getElementById('messageInput');
+                    if (!input.value.trim()) return;
+                    await _supabase.from('messages').insert({ from:currentUser.id, type:'text', content:input.value.trim(), timestamp:Date.now() });
+                    input.value = '';
+                };
+            } else document.getElementById('loginError').innerText = res.msg;
+        };
+        document.getElementById('doRegisterBtn').onclick = async () => {
+            const res = await register(document.getElementById('regId').value.trim(), document.getElementById('regPwd').value);
+            if (res.success) { alert('注册成功！请登录'); document.getElementById('loginPanel').style.display='block'; document.getElementById('registerPanel').style.display='none'; }
+            else document.getElementById('regError').innerText = res.msg;
+        };
+        document.getElementById('logoutBtn').onclick = () => {
+            currentUser = null; localStorage.removeItem('lastUser');
+            document.getElementById('authView').style.display = 'flex'; document.getElementById('chatView').style.display = 'none';
+        };
+        document.getElementById('chatTabBtn').onclick = () => {
+            document.getElementById('chatPanel').style.display = 'block';
+            document.getElementById('worldPanel').style.display = 'none';
+        };
+        document.getElementById('worldTabBtn').onclick = () => {
+            document.getElementById('chatPanel').style.display = 'none';
+            document.getElementById('worldPanel').style.display = 'flex';
+            renderWorldCards();
+        };
+        document.getElementById('themePaletteBtn').onclick = openThemeSelector;
+        document.getElementById('themeSelectorOverlay').addEventListener('click', e => { if (e.target===document.getElementById('themeSelectorOverlay')) document.getElementById('themeSelectorOverlay').style.display = 'none'; });
+        document.getElementById('viewModeBtn').onclick = () => {
+            setViewMode(viewMode === 'desktop' ? 'mobile' : 'desktop');
+        };
+        const isDark = localStorage.getItem('theme')==='dark';
+        if (isDark) document.body.classList.add('dark');
+        document.getElementById('themeToggleBtn').onclick = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('theme', document.body.classList.contains('dark')?'dark':'light');
+        };
+        const lastUser = localStorage.getItem('lastUser');
+        if (lastUser) {
+            login(lastUser, '').then(res => {
+                if (!res.success) { localStorage.removeItem('lastUser'); return; }
+                currentUser = { id: lastUser };
+                document.getElementById('authView').style.display = 'none';
+                document.getElementById('chatView').style.display = 'flex';
+                document.getElementById('currentUserName').innerText = lastUser;
+                listenMessages();
+                renderWorldCards();
+                document.getElementById('worldSearch').addEventListener('input', renderWorldCards);
+                document.getElementById('sendMsgBtn').onclick = async () => {
+                    const input = document.getElementById('messageInput');
+                    if (!input.value.trim()) return;
+                    await _supabase.from('messages').insert({ from:currentUser.id, type:'text', content:input.value.trim(), timestamp:Date.now() });
+                    input.value = '';
+                };
+            });
+        }
+    });
+})();
 </script>
 </body>
 </html>
