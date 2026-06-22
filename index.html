@@ -156,6 +156,33 @@
             .message { max-width:90%; }
             .hide-chat-btn { bottom:5rem; }
         }
+
+        /* 动画关键帧 */
+        @keyframes bgShiftSlow {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+        @keyframes bgShiftSlower {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+        @keyframes cloudDrift {
+            0% { background-position: 0% 0; }
+            100% { background-position: -200% 0; }
+        }
+        @keyframes toriiSlide {
+            0% { background-position: 0 50%; }
+            100% { background-position: -150px 50%; }
+        }
+        @keyframes norenSway {
+            0%, 100% { background-position: 0 0; }
+            50% { background-position: 3px 0; }
+        }
+        @keyframes heartPop {
+            0% { transform: scale(0) rotate(0deg); opacity:1; }
+            50% { transform: scale(1.4) rotate(10deg); opacity:1; }
+            100% { transform: scale(1) rotate(0deg); opacity:0; }
+        }
     </style>
 </head>
 <body>
@@ -241,8 +268,8 @@ const renderedMsgIds = new Set();
 let lastMsgTimestamp = 0;
 let messageInterval = null;
 let userInterval = null;
+let themeClickHandler = null; // 用于解绑主题点击事件
 
-// HTML 转义（仅用于文本内容，不要转义 URL/Base64 图片）
 function escapeHtml(unsafe) {
     return String(unsafe)
         .replace(/&/g, "&amp;")
@@ -252,32 +279,167 @@ function escapeHtml(unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// ========== 主题定义 ==========
 const THEMES = [
-    { id:'ringcity', name:'环城珊瑚', emoji:'🏛️', swatch:'linear-gradient(135deg,#FF7F7F,#8A9A5B)',
-      colors: { accent:'#FF7F7F', msgSelf:'#FF7F7F', msgOther:'#e4e6eb', sidebarBg:'#f8fafc', chatBg:'#fff' } },
-    { id:'swamp-witch', name:'沼泽巫女', emoji:'🔮', swatch:'linear-gradient(135deg,#1a0a2e,#c9a050)',
-      colors: { accent:'#c9a050', msgSelf:'#1a0a2e', msgOther:'#e8d5b0', sidebarBg:'#f5efe6', chatBg:'#fcfaf5' } },
-    { id:'brief-history', name:'时间简史', emoji:'⌛', swatch:'linear-gradient(180deg,#000,#fff)',
-      colors: { accent:'#333', msgSelf:'#333', msgOther:'#e0e0e0', sidebarBg:'#fafafa', chatBg:'#fff' } },
-    { id:'ferryman', name:'摆渡巫师', emoji:'⛩️', swatch:'linear-gradient(135deg,#e8734a,#1a3c2a)',
-      colors: { accent:'#e8734a', msgSelf:'#e8734a', msgOther:'#e6d7cc', sidebarBg:'#fcf3ee', chatBg:'#fff9f5' } },
-    { id:'strawberry-sweet', name:'草莓甜心', emoji:'❤', swatch:'linear-gradient(180deg,#fce4ec,#f48fb1)',
-      colors: { accent:'#f48fb1', msgSelf:'#f48fb1', msgOther:'#ffe4ec', sidebarBg:'#fff0f3', chatBg:'#fff5f7' } },
-    { id:'sunny-cloud', name:'晴天初云', emoji:'☁️', swatch:'linear-gradient(180deg,#bbdefb,#fff)',
-      colors: { accent:'#64b5f6', msgSelf:'#64b5f6', msgOther:'#e3f2fd', sidebarBg:'#f0f8ff', chatBg:'#fff' } },
-    { id:'rose-pink', name:'玫粉主题', emoji:'🌸', swatch:'linear-gradient(135deg,#e91e63,#f48fb1)',
-      colors: { accent:'#e91e63', msgSelf:'#e91e63', msgOther:'#fce4ec', sidebarBg:'#fff0f3', chatBg:'#fff5f7' } },
-    { id:'ritzlicht', name:'瑞茨尔专属', emoji:'🐱', swatch:'linear-gradient(135deg,#e3f2fd,#d4a843)',
-      colors: { accent:'#d4a843', msgSelf:'#d4a843', msgOther:'#e3f2fd', sidebarBg:'#f5f0e1', chatBg:'#fffdf5' } },
-    { id:'night-diner', name:'深夜食堂', emoji:'🍜', swatch:'linear-gradient(180deg,#1a2233,#f5a623)',
-      colors: { accent:'#f5a623', msgSelf:'#f5a623', msgOther:'#2c2e3e', sidebarBg:'#1a1c28', chatBg:'#1e2130' } },
-    { id:'star-rail', name:'星穹铁道', emoji:'🌌', swatch:'linear-gradient(180deg,#0a0a2e,#1e3a5f)',
-      colors: { accent:'#5e9eff', msgSelf:'#5e9eff', msgOther:'#1a2040', sidebarBg:'#0f1525', chatBg:'#141c30' } },
-    { id:'firefly-forest', name:'萤火之森', emoji:'🌿', swatch:'linear-gradient(180deg,#0a1a0a,#1a4a1a)',
-      colors: { accent:'#7ec87e', msgSelf:'#7ec87e', msgOther:'#1a2a1a', sidebarBg:'#0f1f0f', chatBg:'#142014' } },
-    { id:'vintage-film', name:'旧日胶片', emoji:'📷', swatch:'linear-gradient(180deg,#3a2a1a,#c8b898)',
-      colors: { accent:'#c8b898', msgSelf:'#c8b898', msgOther:'#e6d7cc', sidebarBg:'#f5efe6', chatBg:'#fcfaf5' } }
+    {
+        id:'ringcity', name:'环城珊瑚', emoji:'🏛️',
+        swatch:'linear-gradient(135deg,#FF7F7F,#8A9A5B)',
+        colors: { accent:'#FF7F7F', msgSelf:'#FF7F7F', msgOther:'#e4e6eb', sidebarBg:'#f8fafc', chatBg:'#fff' },
+        bg: 'linear-gradient(135deg, #FF7F7F, #e8a87c, #c9b08c, #a3b08b, #8A9A5B, #7a9a4e)',
+        bgSize: '400% 400%',
+        bgAnimation: 'bgShiftSlow 20s ease-in-out infinite alternate',
+        pattern: 'none',
+        patternSize: 'auto',
+        patternPosition: '0 0',
+        patternRepeat: 'no-repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'swamp-witch', name:'沼泽巫女', emoji:'🔮',
+        swatch:'linear-gradient(135deg,#1a0a2e,#c9a050)',
+        colors: { accent:'#c9a050', msgSelf:'#1a0a2e', msgOther:'#e8d5b0', sidebarBg:'#f5efe6', chatBg:'#fcfaf5' },
+        bg: 'linear-gradient(135deg, #1a0a2e, #0d0015, #2d1b4a)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cdefs%3E%3Cg id='f'%3E%3Ccircle cx='0' cy='-6' r='4' fill='%23c9a050' opacity='0.15'/%3E%3Ccircle cx='5' cy='-2' r='4' fill='%23c9a050' opacity='0.15'/%3E%3Ccircle cx='3' cy='5' r='4' fill='%23c9a050' opacity='0.15'/%3E%3Ccircle cx='-3' cy='5' r='4' fill='%23c9a050' opacity='0.15'/%3E%3Ccircle cx='-5' cy='-2' r='4' fill='%23c9a050' opacity='0.15'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%23c9a050' opacity='0.4'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23f' x='20' y='20' transform='scale(0.8)'/%3E%3Cuse href='%23f' x='80' y='70' transform='scale(1.2)'/%3E%3Cuse href='%23f' x='40' y='90' transform='scale(0.6)'/%3E%3Cuse href='%23f' x='100' y='10' transform='scale(0.9)'/%3E%3C/svg%3E")`,
+        patternSize: '120px 120px',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'brief-history', name:'时间简史', emoji:'⌛',
+        swatch:'linear-gradient(180deg,#000,#fff)',
+        colors: { accent:'#333', msgSelf:'#333', msgOther:'#e0e0e0', sidebarBg:'#fafafa', chatBg:'#fff' },
+        bg: 'linear-gradient(to bottom, #000, #1a1a1a, #fff)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='200' height='200'%3E%3Cg opacity='0.15'%3E%3Ccircle cx='100' cy='100' r='90' fill='none' stroke='%23c9a050' stroke-width='2'/%3E%3Ctext x='100' y='60' text-anchor='middle' fill='%23c9a050' font-size='10'%3EXII%3C/text%3E%3Ctext x='100' y='155' text-anchor='middle' fill='%23c9a050' font-size='10'%3EVI%3C/text%3E%3Ctext x='150' y='105' text-anchor='middle' fill='%23c9a050' font-size='10'%3EIII%3C/text%3E%3Ctext x='50' y='105' text-anchor='middle' fill='%23c9a050' font-size='10'%3EIX%3C/text%3E%3Cstyle%3E @keyframes rot %7B 100%25%7Btransform:rotate(360deg)%7D %7D .sec %7B animation: rot 60s linear infinite; transform-origin: 100px 100px; %7D %3C/style%3E%3Cline x1='100' y1='100' x2='100' y2='30' stroke='%23c9a050' stroke-width='1.5' class='sec'/%3E%3C/g%3E%3C/svg%3E")`,
+        patternSize: '200px 200px',
+        patternPosition: 'right 20px top 20px',
+        patternRepeat: 'no-repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'ferryman', name:'摆渡巫师', emoji:'⛩️',
+        swatch:'linear-gradient(135deg,#e8734a,#1a3c2a)',
+        colors: { accent:'#e8734a', msgSelf:'#e8734a', msgOther:'#e6d7cc', sidebarBg:'#fcf3ee', chatBg:'#fff9f5' },
+        bg: 'linear-gradient(135deg, #e8734a, #c96040, #1a3c2a, #2a4a3a)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='120'%3E%3Cdefs%3E%3Cg id='torii'%3E%3Crect x='-4' y='20' width='3' height='80' fill='%23e8734a' opacity='0.12'/%3E%3Crect x='4' y='20' width='3' height='80' fill='%23e8734a' opacity='0.12'/%3E%3Crect x='-6' y='15' width='15' height='5' fill='%23e8734a' opacity='0.12'/%3E%3Cpath d='M-8 20 Q0 10 8 20' stroke='%23c9985a' stroke-width='1' fill='none' opacity='0.15'/%3E%3C/g%3E%3C/defs%3E%3Cuse href='%23torii' x='30' y='0' transform='scale(1.0)'/%3E%3Cuse href='%23torii' x='90' y='0' transform='scale(0.7)'/%3E%3Cuse href='%23torii' x='130' y='0' transform='scale(0.4)'/%3E%3C/svg%3E")`,
+        patternSize: '150px 120px',
+        patternPosition: '0 50%',
+        patternRepeat: 'repeat-x',
+        bgAnimationPattern: 'toriiSlide 120s linear infinite',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'strawberry-sweet', name:'草莓甜心', emoji:'❤',
+        swatch:'linear-gradient(180deg,#fce4ec,#f48fb1)',
+        colors: { accent:'#f48fb1', msgSelf:'#f48fb1', msgOther:'#ffe4ec', sidebarBg:'#fff0f3', chatBg:'#fff5f7' },
+        bg: 'linear-gradient(135deg, #fce4ec, #f8bbd0, #f48fb1)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: 'radial-gradient(circle at 25% 25%, #ec407a30 1px, transparent 1px), radial-gradient(circle at 75% 75%, #ec407a30 1px, transparent 1px)',
+        patternSize: '40px 40px',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'sunny-cloud', name:'晴天初云', emoji:'☁️',
+        swatch:'linear-gradient(180deg,#bbdefb,#fff)',
+        colors: { accent:'#64b5f6', msgSelf:'#64b5f6', msgOther:'#e3f2fd', sidebarBg:'#f0f8ff', chatBg:'#fff' },
+        bg: 'linear-gradient(to bottom, #bbdefb, #e3f2fd, #fff)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: 'radial-gradient(circle at 20% 20%, white 25px, transparent 26px), radial-gradient(circle at 35% 20%, white 30px, transparent 31px), radial-gradient(circle at 50% 20%, white 28px, transparent 29px), radial-gradient(circle at 70% 30%, white 22px, transparent 23px)',
+        patternSize: '200% 100%',
+        patternPosition: '0 0',
+        patternRepeat: 'no-repeat',
+        bgAnimationPattern: 'cloudDrift 30s linear infinite',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'rose-pink', name:'玫粉主题', emoji:'🌸',
+        swatch:'linear-gradient(135deg,#e91e63,#f48fb1)',
+        colors: { accent:'#e91e63', msgSelf:'#e91e63', msgOther:'#fce4ec', sidebarBg:'#fff0f3', chatBg:'#fff5f7' },
+        bg: 'linear-gradient(135deg, #e91e63, #f06292, #f48fb1)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: 'repeating-linear-gradient(45deg, #e91e6320 0px, #e91e6320 1px, transparent 1px, transparent 10px), repeating-linear-gradient(-45deg, #e91e6320 0px, #e91e6320 1px, transparent 1px, transparent 10px)',
+        patternSize: 'auto',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'ritzlicht', name:'瑞茨尔专属', emoji:'🐱',
+        swatch:'linear-gradient(135deg,#e3f2fd,#d4a843)',
+        colors: { accent:'#d4a843', msgSelf:'#d4a843', msgOther:'#e3f2fd', sidebarBg:'#f5f0e1', chatBg:'#fffdf5' },
+        bg: 'linear-gradient(135deg, #e3f2fd, #e8d5b0, #f5e6c8, #bbdefb, #d4a843)',
+        bgSize: '300% 300%',
+        bgAnimation: 'bgShiftSlower 25s ease-in-out infinite alternate',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpolygon points='20,10 30,35 10,35' fill='%230047ab' opacity='0.08'/%3E%3Cpolygon points='50,10 60,35 40,35' fill='%230047ab' opacity='0.08'/%3E%3Ccircle cx='25' cy='45' r='2' fill='%23e6b860' opacity='0.12'/%3E%3Ccircle cx='55' cy='55' r='1.5' fill='%23e6b860' opacity='0.12'/%3E%3C/svg%3E")`,
+        patternSize: '80px 80px',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'night-diner', name:'深夜食堂', emoji:'🍜',
+        swatch:'linear-gradient(180deg,#1a2233,#f5a623)',
+        colors: { accent:'#f5a623', msgSelf:'#f5a623', msgOther:'#2c2e3e', sidebarBg:'#1a1c28', chatBg:'#1e2130' },
+        bg: 'linear-gradient(to bottom, #1a2233, #2d3a4a, #f5a623)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='60'%3E%3Crect width='200' height='30' fill='%231a2233' opacity='0.8'/%3E%3Cpath d='M0 30 Q10 50 20 30 T40 30 T60 30 T80 30 T100 30 T120 30 T140 30 T160 30 T180 30 T200 30' fill='none' stroke='%23f5a623' stroke-width='2' opacity='0.2'/%3E%3Cline x1='0' y1='0' x2='200' y2='0' stroke='%23f5a623' stroke-width='1' opacity='0.15'/%3E%3C/svg%3E")`,
+        patternSize: '200px 60px',
+        patternPosition: 'bottom',
+        patternRepeat: 'repeat-x',
+        bgAnimationPattern: 'norenSway 6s ease-in-out infinite',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'star-rail', name:'星穹铁道', emoji:'🌌',
+        swatch:'linear-gradient(180deg,#0a0a2e,#1e3a5f)',
+        colors: { accent:'#5e9eff', msgSelf:'#5e9eff', msgOther:'#1a2040', sidebarBg:'#0f1525', chatBg:'#141c30' },
+        bg: 'linear-gradient(to bottom, #0a0a2e, #1a1a4a, #0d1b2a, #1e3a5f)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' width='200' height='200'%3E%3Cdefs%3E%3Cg id='cube'%3E%3Crect x='-4' y='-4' width='8' height='8' fill='%23c0d0e0' opacity='0.2'/%3E%3Crect x='-4' y='-4' width='8' height='8' fill='none' stroke='%23c0d0e0' stroke-width='0.5'/%3E%3C/g%3E%3C/defs%3E%3Cg opacity='0.3'%3E%3Ccircle cx='100' cy='100' r='80' fill='none' stroke='%23c0d0e0' stroke-width='0.5'/%3E%3Ccircle cx='100' cy='100' r='85' fill='none' stroke='%23c0d0e0' stroke-width='0.3' stroke-dasharray='2,4'/%3E%3Cstyle%3E @keyframes orbit %7B 100%25%7Btransform:rotate(360deg)%7D %7D .ring %7B animation: orbit 120s linear infinite; transform-origin: 100px 100px; %7D .cube1 %7B animation: orbit 115s linear infinite; transform-origin: 100px 100px; %7D .cube2 %7B animation: orbit 125s linear infinite; transform-origin: 100px 100px; %7D .float1 %7B animation: float1 4s ease-in-out infinite; %7D .float2 %7B animation: float2 5s ease-in-out infinite; %7D @keyframes float1 %7B 0%25,100%25%7Btransform:translateY(0)%7D 50%25%7Btransform:translateY(-3px)%7D %7D @keyframes float2 %7B 0%25,100%25%7Btransform:translateY(0)%7D 50%25%7Btransform:translateY(3px)%7D %7D %3C/style%3E%3Cg class='ring'%3E%3Cuse href='%23cube' x='80' y='15' class='float1'/%3E%3Cuse href='%23cube' x='170' y='60' class='float2'/%3E%3Cuse href='%23cube' x='150' y='140' class='float1'/%3E%3Cuse href='%23cube' x='50' y='160' class='float2'/%3E%3Cuse href='%23cube' x='10' y='100' class='float1'/%3E%3Cuse href='%23cube' x='30' y='30' class='float2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        patternSize: '200px 200px',
+        patternPosition: 'right 50px top 50px',
+        patternRepeat: 'no-repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'firefly-forest', name:'萤火之森', emoji:'🌿',
+        swatch:'linear-gradient(180deg,#0a1a0a,#1a4a1a)',
+        colors: { accent:'#7ec87e', msgSelf:'#7ec87e', msgOther:'#1a2a1a', sidebarBg:'#0f1f0f', chatBg:'#142014' },
+        bg: 'linear-gradient(to bottom, #0a1a0a, #1a3a1a, #0d2a0d, #1a4a1a)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cpath d='M10 0 L20 5 L20 15 L10 20 L0 15 L0 5 Z' fill='none' stroke='%23336633' stroke-width='0.5' opacity='0.05'/%3E%3Cpath d='M30 0 L40 5 L40 15 L30 20 L20 15 L20 5 Z' fill='none' stroke='%23336633' stroke-width='0.5' opacity='0.05'/%3E%3Cpath d='M10 20 L20 25 L20 35 L10 40 L0 35 L0 25 Z' fill='none' stroke='%23336633' stroke-width='0.5' opacity='0.05'/%3E%3Cstyle%3E .dot1 %7B animation: glow 2s infinite; %7D .dot2 %7B animation: glow 3s infinite 0.5s; %7D .dot3 %7B animation: glow 4s infinite 1s; %7D @keyframes glow %7B 0%25,100%25%7B opacity:0.4%7D 50%25%7Bopacity:0.8%7D %7D %3C/style%3E%3Ccircle cx='50' cy='50' r='2' fill='%23a0d860' class='dot1'/%3E%3Ccircle cx='120' cy='30' r='3' fill='%23b4dc64' class='dot2'/%3E%3Ccircle cx='150' cy='100' r='2' fill='%23a0d860' class='dot3'/%3E%3Ccircle cx='80' cy='140' r='2.5' fill='%23b4dc64' class='dot1'/%3E%3Ccircle cx='30' cy='170' r='2' fill='%23a0d860' class='dot2'/%3E%3C/svg%3E")`,
+        patternSize: '200px 200px',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat',
+        extraBg: null, extraBgSize: null
+    },
+    {
+        id:'vintage-film', name:'旧日胶片', emoji:'📷',
+        swatch:'linear-gradient(180deg,#3a2a1a,#c8b898)',
+        colors: { accent:'#c8b898', msgSelf:'#c8b898', msgOther:'#e6d7cc', sidebarBg:'#f5efe6', chatBg:'#fcfaf5' },
+        bg: 'linear-gradient(to bottom, #3a2a1a, #5a4a3a, #8a7a6a, #c8b898)',
+        bgSize: 'auto',
+        bgAnimation: 'none',
+        pattern: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='30'%3E%3Crect x='5' y='5' width='4' height='20' fill='%23c8b898' opacity='0.2'/%3E%3Crect x='15' y='5' width='4' height='20' fill='%23c8b898' opacity='0.2'/%3E%3Crect x='25' y='5' width='4' height='20' fill='%23c8b898' opacity='0.2'/%3E%3Crect x='180' y='5' width='4' height='20' fill='%23c8b898' opacity='0.2'/%3E%3Crect x='190' y='5' width='4' height='20' fill='%23c8b898' opacity='0.2'/%3E%3C/svg%3E")`,
+        patternSize: '200px 30px',
+        patternPosition: '0 0',
+        patternRepeat: 'repeat-y',
+        extraBg: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E")`,
+        extraBgSize: '100px 100px'
+    }
 ];
 
 const defaultWorld = [
@@ -289,32 +451,26 @@ const defaultWorld = [
     { id:6, title:"夜都", content:"环城地下的巨大废墟都会，官方地图上是一片空白。无数没有招牌的商店隐藏在阴影里，交易着环城禁止的一切——机密文件、黑科技、被篡改的记忆。隙民常在此接活。" }
 ];
 
-// ===== 背景隐藏 =====
+// ===== 工具函数 =====
 window.toggleChat = () => {
     document.getElementById('chatLayout').classList.toggle('hidden-chat');
     const btn = document.querySelector('.hide-chat-btn');
     btn.innerText = document.getElementById('chatLayout').classList.contains('hidden-chat') ? '👁️‍🗨️' : '👁️';
 };
 
-// ===== 日夜切换 =====
 window.toggleDark = () => {
     document.body.classList.toggle('dark');
     localStorage.setItem('darkMode', document.body.classList.contains('dark'));
 };
 
-// ===== 注册 =====
 window.showRegister = () => {
     const id = prompt('输入新ID（字母数字下划线）：');
     if (!id || !/^[a-zA-Z0-9_]+$/.test(id)) return alert('ID格式错误');
     const pwd = prompt('输入密码：');
     if (!pwd) return;
     ringDB.from('users').insert({ 
-        id, pwd, 
-        theme:'ringcity', 
-        unlocked_themes:'["ringcity"]', 
-        last_active: Date.now(), 
-        title:'', status:'', avatar:'', 
-        title_approved:false, avatar_approved:false 
+        id, pwd, theme:'ringcity', unlocked_themes:'["ringcity"]', last_active: Date.now(), 
+        title:'', status:'', avatar:'', title_approved:false, avatar_approved:false 
     }).then(r => {
         if (r.error) return alert('注册失败：' + r.error.message);
         alert('✅ 注册成功！请登录');
@@ -342,7 +498,6 @@ window.doLogin = async () => {
     
     await ringDB.from('users').update({ last_active: Date.now() }).eq('id', id);
     
-    // 清除旧的定时器
     if (messageInterval) clearInterval(messageInterval);
     if (userInterval) clearInterval(userInterval);
     
@@ -350,17 +505,13 @@ window.doLogin = async () => {
     lastMsgTimestamp = 0;
     document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">加载中...</p>';
     
-    loadMessages(true); 
-    loadUsers(); 
-    loadAnnouncement(); 
-    loadArchive();
-    
+    loadMessages(true); loadUsers(); loadAnnouncement(); loadArchive();
     messageInterval = setInterval(() => loadMessages(false), 3000);
     userInterval = setInterval(loadUsers, 15000);
     
     if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-    // 应用主题
     applyTheme(currentUser.theme || 'ringcity');
+    initThemeInteractions();
 };
 
 function updateCurrentUserDisplay() {
@@ -372,6 +523,11 @@ function updateCurrentUserDisplay() {
 window.logout = () => {
     if (messageInterval) { clearInterval(messageInterval); messageInterval = null; }
     if (userInterval) { clearInterval(userInterval); userInterval = null; }
+    // 移除主题点击事件
+    if (themeClickHandler) {
+        document.body.removeEventListener('click', themeClickHandler);
+        themeClickHandler = null;
+    }
     currentUser = null;
     document.getElementById('authView').style.display = 'flex';
     document.getElementById('chatView').style.display = 'none';
@@ -383,45 +539,29 @@ window.switchTab = (tab) => {
     document.getElementById('chatPanel').style.display = tab === 'chat' ? 'block' : 'none';
     document.getElementById('guestbookPanel').style.display = tab === 'guestbook' ? 'flex' : 'none';
     document.getElementById('archivePanel').style.display = tab === 'archive' ? 'block' : 'none';
-    
     document.querySelectorAll('.top-bar .tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.bottom-nav button[data-tab]').forEach(b => b.classList.remove('active'));
     const topBtn = document.querySelector(`.top-bar .tab-btn[data-tab="${tab}"]`);
     if (topBtn) topBtn.classList.add('active');
     const bottomBtn = document.querySelector(`.bottom-nav button[data-tab="${tab}"]`);
     if (bottomBtn) bottomBtn.classList.add('active');
-    
-    if (tab === 'chat') {
-        loadMessages(true);
-    } else if (tab === 'guestbook') {
-        loadGuestbook();
-    } else if (tab === 'archive') {
-        loadArchive();
-    }
+    if (tab === 'chat') loadMessages(true);
+    else if (tab === 'guestbook') loadGuestbook();
+    else if (tab === 'archive') loadArchive();
 };
 
-// ===== 消息系统 =====
+// ===== 消息 =====
 async function loadMessages(isInitial) {
     const { data } = await ringDB.from('messages').select('*').order('timestamp', { ascending: true }).limit(200);
     const container = document.getElementById('chatMessages');
     if (!container || currentTab !== 'chat') return;
-    if (!data || data.length === 0) { 
-        if(isInitial) container.innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>'; 
-        return; 
-    }
+    if (!data || data.length === 0) { if(isInitial) container.innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>'; return; }
     const wasAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 60;
-    
-    if (isInitial) { 
-        container.innerHTML = ''; 
-        renderedMsgIds.clear(); 
-        data.forEach(m => appendMessage(m)); 
-    } else { 
-        data.filter(m => m.timestamp >= lastMsgTimestamp && !renderedMsgIds.has(m.id)).forEach(m => appendMessage(m)); 
-    }
+    if (isInitial) { container.innerHTML = ''; renderedMsgIds.clear(); data.forEach(m => appendMessage(m)); }
+    else { data.filter(m => m.timestamp >= lastMsgTimestamp && !renderedMsgIds.has(m.id)).forEach(m => appendMessage(m)); }
     if(data.length > 0) lastMsgTimestamp = data[data.length - 1].timestamp;
     if(wasAtBottom || isInitial) container.scrollTop = container.scrollHeight;
 }
-
 function appendMessage(m) {
     renderedMsgIds.add(m.id);
     const container = document.getElementById('chatMessages');
@@ -432,14 +572,11 @@ function appendMessage(m) {
     div.innerHTML = `<div class="message-info">${escapeHtml(m.from)} ${new Date(m.timestamp).toLocaleTimeString()}</div><div class="message-bubble">${escapeHtml(m.content)}</div>`;
     container.appendChild(div);
 }
-
 window.sendMessage = async () => {
-    const inp = document.getElementById('messageInput'); 
-    const text = inp.value.trim();
+    const inp = document.getElementById('messageInput'); const text = inp.value.trim();
     if (!text) return;
     await ringDB.from('messages').insert({ from: currentUser.id, type: 'text', content: text, timestamp: Date.now() });
-    inp.value = ''; 
-    loadMessages(true);
+    inp.value = ''; loadMessages(true);
 };
 
 // ===== 成员列表 =====
@@ -452,7 +589,6 @@ async function loadUsers() {
     list.innerHTML = filtered.map(u => {
         const diff = now - (u.last_active || 0);
         const dot = diff < 180000 ? '#4ade80' : diff < 900000 ? '#fbbf24' : '#888';
-        // 头像 URL 不转义 (Base64 data URI)
         const avatar = u.avatar && u.avatar_approved ? `<img src="${u.avatar}" class="user-avatar" alt="avatar">` : '';
         const titleTag = u.title_approved && u.title ? `<span class="title-tag">${escapeHtml(u.title)}</span>` : '';
         return `<div class="user-item"><span class="online-dot" style="background:${dot};"></span>${avatar}${escapeHtml(u.id)}${titleTag}</div>`;
@@ -464,18 +600,13 @@ async function loadGuestbook() {
     const { data } = await ringDB.from('guestbook').select('*').order('timestamp', { ascending: false }).limit(50);
     const container = document.getElementById('guestbookList');
     if (!container) return;
-    container.innerHTML = (data || []).map(g => 
-        `<div class="guestbook-item"><b>${escapeHtml(g.author)}</b>: ${escapeHtml(g.content)}</div>`
-    ).join('') || '<p style="opacity:0.5;">墙上空空如也</p>';
+    container.innerHTML = (data || []).map(g => `<div class="guestbook-item"><b>${escapeHtml(g.author)}</b>: ${escapeHtml(g.content)}</div>`).join('') || '<p style="opacity:0.5;">墙上空空如也</p>';
 }
-
 window.postGuestbook = async () => {
-    const inp = document.getElementById('guestbookInput');
-    const text = inp.value.trim();
+    const inp = document.getElementById('guestbookInput'); const text = inp.value.trim();
     if (!text) return;
     await ringDB.from('guestbook').insert({ author: currentUser.id, content: text, timestamp: Date.now() });
-    inp.value = ''; 
-    loadGuestbook();
+    inp.value = ''; loadGuestbook();
 };
 
 // ===== 公告 =====
@@ -484,12 +615,8 @@ async function loadAnnouncement() {
     const wd = data ? data.data : defaultWorld;
     const announce = wd.find(i => i.id === 999);
     const bar = document.getElementById('announceBar');
-    if (announce) { 
-        bar.style.display = 'block'; 
-        bar.innerText = '📢 ' + announce.content; 
-    } else {
-        bar.style.display = 'none';
-    }
+    if (announce) { bar.style.display = 'block'; bar.innerText = '📢 ' + announce.content; }
+    else bar.style.display = 'none';
 }
 
 // ===== 档案 =====
@@ -506,7 +633,6 @@ async function loadArchive() {
         </div>
     `).join('');
 }
-
 window.toggleArchiveDetail = (el) => {
     const detail = el.querySelector('.archive-detail');
     detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
@@ -514,21 +640,17 @@ window.toggleArchiveDetail = (el) => {
 
 // ===== 个人面板 =====
 window.openProfile = () => {
-    const overlay = document.createElement('div'); 
-    overlay.className = 'modal-overlay';
+    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
     overlay.innerHTML = `<div class="modal-box">
         <h3>👤 ${escapeHtml(currentUser.id)}</h3>
-        ${currentUser.avatar_approved && currentUser.avatar 
-            ? `<img src="${currentUser.avatar}" style="width:60px;height:60px;border-radius:50%;margin:0.5rem 0;">` 
-            : '<div style="width:60px;height:60px;border-radius:50%;background:var(--surface2);margin:0.5rem 0;display:flex;align-items:center;justify-content:center;">📷</div>'}
-        <p style="font-size:0.8rem;">头衔：${currentUser.title_approved && currentUser.title ? escapeHtml(currentUser.title) : '无'}</p>
-        <p style="font-size:0.8rem;">状态：${escapeHtml(currentUser.status || '未设置')}</p>
+        ${currentUser.avatar_approved && currentUser.avatar ? `<img src="${currentUser.avatar}" style="width:60px;height:60px;border-radius:50%;margin:0.5rem 0;">` : '<div style="width:60px;height:60px;border-radius:50%;background:var(--surface2);margin:0.5rem 0;display:flex;align-items:center;justify-content:center;">📷</div>'}
+        <p>头衔：${currentUser.title_approved && currentUser.title ? escapeHtml(currentUser.title) : '无'}</p>
+        <p>状态：${escapeHtml(currentUser.status || '未设置')}</p>
         <button id="uploadAvatarBtn">📸 上传头像（需审核）</button>
-        <button id="setStatusBtn" style="margin-top:0.3rem;">✏️ 设置状态</button>
-        <button id="closeProfileBtn" style="margin-top:0.5rem;background:var(--surface2);color:var(--text);">关闭</button>
+        <button id="setStatusBtn">✏️ 设置状态</button>
+        <button id="closeProfileBtn" style="background:var(--surface2);color:var(--text);">关闭</button>
     </div>`;
     document.body.appendChild(overlay);
-    
     overlay.querySelector('#closeProfileBtn').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#uploadAvatarBtn').addEventListener('click', uploadAvatarPrompt);
     overlay.querySelector('#setStatusBtn').addEventListener('click', setStatus);
@@ -537,130 +659,56 @@ window.openProfile = () => {
 
 // ===== 头像裁剪 =====
 window.uploadAvatarPrompt = () => {
-    const inp = document.createElement('input'); 
-    inp.type = 'file'; 
-    inp.accept = 'image/*';
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*';
     inp.onchange = () => {
-        const file = inp.files[0]; 
-        if (!file) return;
+        const file = inp.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image(); 
-            img.src = e.target.result;
-            img.onload = () => showCropModal(img);
-        };
+        reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => showCropModal(img); };
         reader.readAsDataURL(file);
     };
     inp.click();
 };
-
 function showCropModal(img) {
-    const existing = document.querySelector('.crop-overlay');
-    if (existing) existing.remove();
-    
-    const overlay = document.createElement('div'); 
-    overlay.className = 'crop-overlay';
+    const existing = document.querySelector('.crop-overlay'); if (existing) existing.remove();
+    const overlay = document.createElement('div'); overlay.className = 'crop-overlay';
     let scale = 1, offsetX = 0, offsetY = 0;
-    const size = Math.min(img.width, img.height);
-    const initScale = 200 / size;
-    scale = initScale;
-    offsetX = (280 - img.width * scale) / 2;
-    offsetY = (280 - img.height * scale) / 2;
-    
-    overlay.innerHTML = `
-        <div class="crop-container" style="touch-action:none;">
-            <img src="${img.src}" id="cropImg" style="width:${img.width}px; height:${img.height}px; transform: translate(${offsetX}px, ${offsetY}px) scale(${scale}); transform-origin: 0 0;">
-        </div>
-        <div class="crop-frame"></div>
-        <div style="margin-top:0.5rem;display:flex;gap:0.5rem; align-items:center;">
-            <input type="range" id="cropScaleSlider" min="0.5" max="3" step="0.1" value="${scale}">
-            <button id="confirmCropBtn">✅ 确认</button>
-            <button id="cancelCropBtn">取消</button>
-        </div>`;
+    const initScale = 200 / Math.min(img.width, img.height); scale = initScale;
+    offsetX = (280 - img.width * scale) / 2; offsetY = (280 - img.height * scale) / 2;
+    overlay.innerHTML = `<div class="crop-container"><img src="${img.src}" id="cropImg" style="width:${img.width}px;height:${img.height}px;transform:translate(${offsetX}px,${offsetY}px) scale(${scale});transform-origin:0 0;"></div><div class="crop-frame"></div>
+        <div style="margin-top:0.5rem;display:flex;gap:0.5rem;"><input type="range" id="cropScaleSlider" min="0.5" max="3" step="0.1" value="${scale}"><button id="confirmCropBtn">✅ 确认</button><button id="cancelCropBtn">取消</button></div>`;
     document.body.appendChild(overlay);
-    
     const cropImg = overlay.querySelector('#cropImg');
     const slider = overlay.querySelector('#cropScaleSlider');
     const container = overlay.querySelector('.crop-container');
-    
-    let isDragging = false;
-    let lastX, lastY;
-    container.addEventListener('mousedown', e => {
-        isDragging = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        e.preventDefault();
-    });
-    container.addEventListener('mousemove', e => {
-        if (!isDragging) return;
-        const dx = e.clientX - lastX;
-        const dy = e.clientY - lastY;
-        offsetX += dx;
-        offsetY += dy;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        updateTransform();
-    });
+    let isDragging = false, lastX, lastY;
+    container.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; e.preventDefault(); });
+    container.addEventListener('mousemove', e => { if (!isDragging) return; offsetX += e.clientX - lastX; offsetY += e.clientY - lastY; lastX = e.clientX; lastY = e.clientY; updateTransform(); });
     container.addEventListener('mouseup', () => isDragging = false);
     container.addEventListener('mouseleave', () => isDragging = false);
-    
-    container.addEventListener('touchstart', e => {
-        isDragging = true;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-        e.preventDefault();
-    }, {passive: false});
-    container.addEventListener('touchmove', e => {
-        if (!isDragging) return;
-        const dx = e.touches[0].clientX - lastX;
-        const dy = e.touches[0].clientY - lastY;
-        offsetX += dx;
-        offsetY += dy;
-        lastX = e.touches[0].clientX;
-        lastY = e.touches[0].clientY;
-        updateTransform();
-    });
+    container.addEventListener('touchstart', e => { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; e.preventDefault(); }, {passive: false});
+    container.addEventListener('touchmove', e => { if (!isDragging) return; offsetX += e.touches[0].clientX - lastX; offsetY += e.touches[0].clientY - lastY; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; updateTransform(); });
     container.addEventListener('touchend', () => isDragging = false);
-    
-    slider.addEventListener('input', () => {
-        scale = parseFloat(slider.value);
-        updateTransform();
-    });
-    
-    function updateTransform() {
-        cropImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-    }
-    
+    slider.addEventListener('input', () => { scale = parseFloat(slider.value); updateTransform(); });
+    function updateTransform() { cropImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`; }
     overlay.querySelector('#confirmCropBtn').addEventListener('click', async () => {
-        const cvs = document.createElement('canvas'); 
-        cvs.width = 200; 
-        cvs.height = 200;
+        const cvs = document.createElement('canvas'); cvs.width = 200; cvs.height = 200;
         const ctx = cvs.getContext('2d');
         const cropSize = 200 / scale;
-        const sx = (200/scale/2 - offsetX/scale);
-        const sy = (200/scale/2 - offsetY/scale);
-        ctx.drawImage(img, sx, sy, cropSize, cropSize, 0, 0, 200, 200);
+        ctx.drawImage(img, (200/scale/2 - offsetX/scale), (200/scale/2 - offsetY/scale), cropSize, cropSize, 0, 0, 200, 200);
         const base64 = cvs.toDataURL('image/jpeg', 0.8);
-        
         await ringDB.from('users').update({ avatar: base64, avatar_approved: false }).eq('id', currentUser.id);
-        currentUser.avatar = base64; 
-        currentUser.avatar_approved = false;
-        alert('✅ 头像已提交审核');
-        overlay.remove();
-        loadUsers();
+        currentUser.avatar = base64; currentUser.avatar_approved = false;
+        alert('✅ 头像已提交审核'); overlay.remove(); loadUsers();
     });
-    
     overlay.querySelector('#cancelCropBtn').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
 }
 
-// ===== 状态 =====
 window.setStatus = async () => {
     const s = prompt('设置个人状态：', currentUser.status || '');
     if (s === null) return;
     await ringDB.from('users').update({ status: s }).eq('id', currentUser.id);
-    currentUser.status = s; 
-    loadUsers();
+    currentUser.status = s; loadUsers();
 };
 
 // ===== 主题系统 =====
@@ -668,36 +716,77 @@ function applyTheme(themeId) {
     const theme = THEMES.find(t => t.id === themeId) || THEMES[0];
     const root = document.documentElement;
     const c = theme.colors;
-    // 应用主题颜色变量（保留深色模式的自动切换能力，所以不在 root 上硬写 bg/surface 等）
     root.style.setProperty('--accent', c.accent);
     root.style.setProperty('--msg-self', c.msgSelf);
     root.style.setProperty('--msg-other', c.msgOther);
     root.style.setProperty('--sidebar-bg', c.sidebarBg);
     root.style.setProperty('--chat-bg', c.chatBg);
-    // 如果有更多变量可以继续添加，但目前这几个足以让主题有明显变化
+
+    const appBg = document.querySelector('.app-bg');
+    let bgLayers = [theme.bg];
+    if (theme.pattern && theme.pattern !== 'none') bgLayers.push(theme.pattern);
+    if (theme.extraBg) bgLayers.push(theme.extraBg);
+    appBg.style.background = bgLayers.join(', ');
+    appBg.style.backgroundSize = [theme.bgSize || 'auto', theme.patternSize || 'auto', theme.extraBgSize || 'auto'].join(', ');
+    appBg.style.backgroundPosition = [theme.bgPosition || '0 0', theme.patternPosition || '0 0', '0 0'].join(', ');
+    appBg.style.backgroundRepeat = ['no-repeat', theme.patternRepeat || 'repeat', 'repeat'].join(', ');
+
+    // 动画
+    appBg.style.animation = 'none';
+    if (theme.bgAnimation && theme.bgAnimation !== 'none') {
+        appBg.style.animation = theme.bgAnimation;
+        if (theme.bgAnimationPattern && theme.bgAnimationPattern !== 'none') {
+            appBg.style.animation += `, ${theme.bgAnimationPattern}`;
+        }
+    } else if (theme.bgAnimationPattern && theme.bgAnimationPattern !== 'none') {
+        appBg.style.animation = theme.bgAnimationPattern;
+    }
+
+    // 重新绑定主题点击事件（瑞茨尔、草莓）
+    if (themeClickHandler) {
+        document.body.removeEventListener('click', themeClickHandler);
+        themeClickHandler = null;
+    }
+    if (themeId === 'ritzlicht' || themeId === 'strawberry-sweet') {
+        themeClickHandler = (e) => {
+            if (themeId === 'ritzlicht') {
+                for (let i = 0; i < 3; i++) {
+                    const paw = document.createElement('div');
+                    paw.innerText = 'ฅ';
+                    paw.style.cssText = `position:fixed; left:${e.clientX-10}px; top:${e.clientY-10}px; font-size:20px; color:${Math.random()>0.5?'#0047ab':'#e6b860'}; pointer-events:none; z-index:999; opacity:1; transition:all 0.8s ease-out; transform:translate(0,0) scale(1);`;
+                    document.body.appendChild(paw);
+                    const angle = Math.random() * Math.PI * 2;
+                    const dist = 30 + Math.random() * 30;
+                    requestAnimationFrame(() => {
+                        paw.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px) scale(0.2)`;
+                        paw.style.opacity = '0';
+                    });
+                    setTimeout(() => paw.remove(), 800);
+                }
+            } else if (themeId === 'strawberry-sweet') {
+                const heart = document.createElement('div');
+                heart.innerText = '❤️';
+                heart.style.cssText = `position:fixed; left:${e.clientX-10}px; top:${e.clientY-10}px; font-size:24px; pointer-events:none; z-index:999; animation:heartPop 0.6s ease-out forwards;`;
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 600);
+            }
+        };
+        document.body.addEventListener('click', themeClickHandler);
+    }
 }
 
 window.openThemePanel = () => {
-    const overlay = document.createElement('div'); 
-    overlay.className = 'modal-overlay';
+    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
     const isAdmin = MODERATORS.includes(currentUser.id);
     const available = isAdmin ? THEMES : THEMES.filter(t => (currentUser.unlocked_themes || []).includes(t.id));
     overlay.innerHTML = `<div class="modal-box"><h3>🎨 界面配置</h3>
-        <div class="theme-grid">${available.map(t => {
-            const isCurrent = (currentUser.theme || 'ringcity') === t.id;
-            return `<div class="theme-card${isCurrent ? ' selected' : ''}" data-theme="${t.id}"><div class="swatch" style="background:${t.swatch};"></div>${t.emoji} ${t.name}</div>`;
-        }).join('')}</div>
+        <div class="theme-grid">${available.map(t => `<div class="theme-card${(currentUser.theme||'ringcity')===t.id?' selected':''}" data-theme="${t.id}"><div class="swatch" style="background:${t.swatch};"></div>${t.emoji} ${t.name}</div>`).join('')}</div>
         ${isAdmin ? `<div style="margin-top:0.5rem;"><b>🎁 赠予主题：</b><input id="giftId" placeholder="对方ID"><select id="giftTheme">${THEMES.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}</select><button id="giftBtn">赠送</button></div>` : ''}
         <button id="closeThemeBtn" style="margin-top:0.5rem;background:var(--surface2);color:var(--text);">关闭</button></div>`;
     document.body.appendChild(overlay);
-    
-    overlay.querySelectorAll('.theme-card').forEach(card => {
-        card.addEventListener('click', () => selectTheme(card.dataset.theme));
-    });
+    overlay.querySelectorAll('.theme-card').forEach(card => card.addEventListener('click', () => selectTheme(card.dataset.theme)));
     overlay.querySelector('#closeThemeBtn').addEventListener('click', () => overlay.remove());
-    if (isAdmin) {
-        overlay.querySelector('#giftBtn').addEventListener('click', giftTheme);
-    }
+    if (isAdmin) overlay.querySelector('#giftBtn').addEventListener('click', giftTheme);
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
 };
 
@@ -706,8 +795,7 @@ window.selectTheme = async (themeId) => {
     await ringDB.from('users').update({ theme: themeId }).eq('id', currentUser.id);
     currentUser.theme = themeId;
     applyTheme(themeId);
-    const overlay = document.querySelector('.modal-overlay');
-    if (overlay) overlay.remove();
+    document.querySelector('.modal-overlay')?.remove();
 };
 
 window.giftTheme = async () => {
@@ -726,8 +814,7 @@ window.giftTheme = async () => {
 // ===== 管理员面板 =====
 window.openAdminPanel = () => {
     if (!MODERATORS.includes(currentUser.id)) return;
-    const overlay = document.createElement('div'); 
-    overlay.className = 'modal-overlay';
+    const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
     overlay.innerHTML = `<div class="modal-box"><h3>⚙️ 审核员控制台</h3>
         <div><b>📸 头像审核</b><div id="adminAvatarList"></div></div>
         <div style="margin-top:0.5rem;"><b>🏷️ 头衔审核</b><div id="adminTitleList"></div></div>
@@ -736,119 +823,60 @@ window.openAdminPanel = () => {
         <button id="clearChatBtn">🗑️ 清空记录</button>
         <button id="closeAdminBtn" style="background:var(--surface2);color:var(--text);">关闭</button></div>`;
     document.body.appendChild(overlay);
-    
     overlay.querySelector('#closeAdminBtn').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#exportChatBtn').addEventListener('click', exportChat);
     overlay.querySelector('#clearChatBtn').addEventListener('click', clearChat);
     overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
-    
     loadAdminData();
 };
 
 async function loadAdminData() {
     const { data: users } = await ringDB.from('users').select('*');
     const { data: msgs } = await ringDB.from('messages').select('from');
-    const counts = {}; 
-    (msgs || []).forEach(m => { counts[m.from] = (counts[m.from] || 0) + 1; });
-    
+    const counts = {}; (msgs || []).forEach(m => { counts[m.from] = (counts[m.from] || 0) + 1; });
     const avatarList = document.getElementById('adminAvatarList');
     if (avatarList) {
-        avatarList.innerHTML = (users || []).filter(u => u.avatar && !u.avatar_approved).map(u => 
-            `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;">
-                <img src="${u.avatar}" style="width:25px;height:25px;border-radius:50%;">
-                <span style="font-size:0.7rem;">${escapeHtml(u.id)}</span>
-                <button onclick="approveAvatar('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button>
-                <button onclick="rejectAvatar('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button>
-            </div>`
-        ).join('') || '<p style="opacity:0.5;font-size:0.7rem;">无待审头像</p>';
+        avatarList.innerHTML = (users || []).filter(u => u.avatar && !u.avatar_approved).map(u => `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;"><img src="${u.avatar}" style="width:25px;height:25px;border-radius:50%;"><span style="font-size:0.7rem;">${escapeHtml(u.id)}</span><button onclick="approveAvatar('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectAvatar('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('') || '<p style="opacity:0.5;">无待审头像</p>';
     }
-    
     const titleList = document.getElementById('adminTitleList');
     if (titleList) {
-        titleList.innerHTML = (users || []).filter(u => u.title && !u.title_approved).map(u => 
-            `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;">
-                <span style="font-size:0.7rem;">${escapeHtml(u.id)}</span>
-                <span class="title-tag">${escapeHtml(u.title)}</span>
-                <button onclick="approveTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button>
-                <button onclick="rejectTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button>
-            </div>`
-        ).join('') || '<p style="opacity:0.5;font-size:0.7rem;">无待审头衔</p>';
+        titleList.innerHTML = (users || []).filter(u => u.title && !u.title_approved).map(u => `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;"><span style="font-size:0.7rem;">${escapeHtml(u.id)}</span><span class="title-tag">${escapeHtml(u.title)}</span><button onclick="approveTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#10b981;">通过</button><button onclick="rejectTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;background:#ef4444;">拒绝</button></div>`).join('') || '<p style="opacity:0.5;">无待审头衔</p>';
     }
-    
     const userList = document.getElementById('adminUserList');
     if (userList) {
-        userList.innerHTML = (users || []).sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0)).map(u => 
-            `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;font-size:0.7rem;">
-                <span>${escapeHtml(u.id)}</span>
-                <span style="opacity:0.5;">发言${counts[u.id] || 0}次</span>
-                <button onclick="setTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;">设头衔</button>
-            </div>`
-        ).join('');
+        userList.innerHTML = (users || []).sort((a,b)=>(counts[b.id]||0)-(counts[a.id]||0)).map(u => `<div style="display:flex;align-items:center;gap:0.3rem;margin:0.2rem 0;font-size:0.7rem;"><span>${escapeHtml(u.id)}</span><span style="opacity:0.5;">发言${counts[u.id]||0}次</span><button onclick="setTitle('${escapeHtml(u.id)}')" style="font-size:0.6rem;padding:2px 6px;">设头衔</button></div>`).join('');
     }
 }
-
-window.approveAvatar = async (uid) => { 
-    await ringDB.from('users').update({ avatar_approved: true }).eq('id', uid); 
-    loadAdminData(); 
-    loadUsers(); 
-};
-window.rejectAvatar = async (uid) => { 
-    await ringDB.from('users').update({ avatar: '', avatar_approved: false }).eq('id', uid); 
-    loadAdminData(); 
-    loadUsers(); 
-};
-window.approveTitle = async (uid) => { 
-    await ringDB.from('users').update({ title_approved: true }).eq('id', uid); 
-    loadAdminData(); 
-    loadUsers(); 
-};
-window.rejectTitle = async (uid) => { 
-    await ringDB.from('users').update({ title: '', title_approved: false }).eq('id', uid); 
-    loadAdminData(); 
-    loadUsers(); 
-};
-window.setTitle = async (uid) => { 
-    const t = prompt('输入头衔（需审核）：'); 
-    if (t === null) return; 
-    await ringDB.from('users').update({ title: t, title_approved: false }).eq('id', uid); 
-    loadAdminData(); 
-    loadUsers(); 
-};
-
+window.approveAvatar = async (uid) => { await ringDB.from('users').update({avatar_approved:true}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.rejectAvatar = async (uid) => { await ringDB.from('users').update({avatar:'',avatar_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.approveTitle = async (uid) => { await ringDB.from('users').update({title_approved:true}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.rejectTitle = async (uid) => { await ringDB.from('users').update({title:'',title_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
+window.setTitle = async (uid) => { const t=prompt('输入头衔（需审核）：'); if(t===null) return; await ringDB.from('users').update({title:t,title_approved:false}).eq('id',uid); loadAdminData(); loadUsers(); };
 window.exportChat = async () => {
-    const { data } = await ringDB.from('messages').select('*').order('timestamp', { ascending: true });
-    const text = (data || []).map(m => `[${new Date(m.timestamp).toLocaleString()}] ${m.from}: ${m.content}`).join('\n');
-    const blob = new Blob([text], { type: 'text/plain' });
-    const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(blob); 
-    a.download = '环城通讯记录.txt'; 
-    a.click();
+    const { data } = await ringDB.from('messages').select('*').order('timestamp',{ascending:true});
+    const text = (data||[]).map(m=>`[${new Date(m.timestamp).toLocaleString()}] ${m.from}: ${m.content}`).join('\n');
+    const blob = new Blob([text],{type:'text/plain'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='环城通讯记录.txt'; a.click();
 };
-
 window.clearChat = async () => {
-    if (!confirm('确定清空所有聊天记录？')) return;
-    // 尝试一次性删除所有行，降级为逐条
+    if(!confirm('确定清空所有聊天记录？')) return;
     const { error } = await ringDB.from('messages').delete().neq('id', -1);
-    if (error) {
-        const { data } = await ringDB.from('messages').select('id');
-        if (data) for (const m of data) await ringDB.from('messages').delete().eq('id', m.id);
-    }
-    renderedMsgIds.clear(); 
-    lastMsgTimestamp = 0;
-    document.getElementById('chatMessages').innerHTML = '<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>';
+    if (error) { const { data } = await ringDB.from('messages').select('id'); if(data) for(const m of data) await ringDB.from('messages').delete().eq('id',m.id); }
+    renderedMsgIds.clear(); lastMsgTimestamp=0;
+    document.getElementById('chatMessages').innerHTML='<p style="text-align:center;opacity:0.5;padding:2rem;">暂无消息</p>';
 };
 
 // ===== 事件绑定 =====
-document.getElementById('messageInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-document.getElementById('userSearch').addEventListener('input', loadUsers);
-document.getElementById('worldSearch').addEventListener('input', loadArchive);
+document.getElementById('messageInput').addEventListener('keypress',e=>{if(e.key==='Enter') sendMessage();});
+document.getElementById('userSearch').addEventListener('input',loadUsers);
+document.getElementById('worldSearch').addEventListener('input',loadArchive);
+document.querySelectorAll('.bottom-nav button[data-tab]').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+document.querySelectorAll('.top-bar .tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
 
-document.querySelectorAll('.bottom-nav button[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
-document.querySelectorAll('.top-bar .tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
+function initThemeInteractions() {
+    // 登录时首次应用主题后调用
+    applyTheme(currentUser.theme || 'ringcity');
+}
 </script>
 </body>
 </html>
